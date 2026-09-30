@@ -1,6 +1,7 @@
 package com.thecascadian.universaloreprocessing.item;
 
 import com.thecascadian.universaloreprocessing.UniversalOreProcessing;
+import com.thecascadian.universaloreprocessing.config.ClientConfig;
 import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.MaterialItem.Stage;
@@ -136,6 +137,8 @@ public final class Tooltips {
     }
 
     public static void stage(Stage stage, List<Component> out) {
+        if (!ClientConfig.itemTooltips())
+            return;
         out.add(Component.translatable("tooltip." + UniversalOreProcessing.MODID + ".stage." + stage.itemId())
                 .withStyle(ChatFormatting.GRAY));
         if (!shift()) {
@@ -157,6 +160,8 @@ public final class Tooltips {
     }
 
     public static void reagent(Reagent reagent, List<Component> out) {
+        if (!ClientConfig.itemTooltips())
+            return;
         out.add(Component.translatable("tooltip." + UniversalOreProcessing.MODID + ".reagent." + reagent.itemId())
                 .withStyle(ChatFormatting.GRAY));
         if (!shift()) {
@@ -172,6 +177,8 @@ public final class Tooltips {
     }
 
     public static void machine(MachineKind kind, List<Component> out) {
+        if (!ClientConfig.machineItemTooltips(kind))
+            return;
         out.add(Component.translatable("tooltip." + UniversalOreProcessing.MODID + ".machine." + kind.id())
                 .withStyle(ChatFormatting.GRAY));
         if (!shift()) {

@@ -32,6 +32,8 @@ public class GuideBookItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
             TooltipFlag flag) {
+        if (!com.thecascadian.universaloreprocessing.config.ClientConfig.itemTooltips())
+            return;
         tooltip.add(Component.translatable("tooltip." + UniversalOreProcessing.MODID + ".guide")
                 .withStyle(ChatFormatting.GRAY));
     }

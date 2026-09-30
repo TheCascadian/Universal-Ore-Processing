@@ -274,6 +274,7 @@ public class OreProcessingConfig {
 
     public static void register(ModContainer container) {
         container.registerConfig(ModConfig.Type.COMMON, COMMON_SPEC);
+        container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
     }
 
     /** Reads a value, falling back to its default while the config file has not been loaded yet. */

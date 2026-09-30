@@ -5,6 +5,7 @@ import com.thecascadian.universaloreprocessing.block.MachineBlockEntity;
 import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.block.MachineMenu;
 import com.thecascadian.universaloreprocessing.block.Status;
+import com.thecascadian.universaloreprocessing.config.ClientConfig;
 import com.thecascadian.universaloreprocessing.item.MaterialItem.Stage;
 import com.thecascadian.universaloreprocessing.item.Tooltips;
 import com.thecascadian.universaloreprocessing.process.ProcessRule;
@@ -86,7 +87,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
         graphics.fill(left, top, left + imageWidth, top + imageHeight, FRAME);
         graphics.fill(left + 1, top + 1, left + imageWidth - 1, top + imageHeight - 1, PANEL);
-        graphics.fill(left + 1, top + 1, left + imageWidth - 1, top + 15, color);
+        graphics.fillGradient(left + 1, top + 1, left + imageWidth - 1, top + 15, color, dim(color) + 0x00303030);
         graphics.fill(left + 1, top + 15, left + imageWidth - 1, top + 16, PANEL_DARK);
         graphics.fill(left + 4, top + 119, left + imageWidth - 4, top + imageHeight - 4, PANEL_DARK);
 
@@ -97,18 +98,18 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
 
         drawCaptions(graphics, left, top);
-        drawEmblem(graphics, left + 62, top + 40);
-        drawProgress(graphics, left + 62, top + 70);
+        drawEmblem(graphics, left + 62, top + 44);
+        drawProgress(graphics, left + 62, top + 74);
         drawPower(graphics, left, top);
         if (menu.kind().usesWater())
             drawBar(graphics, left + 158, top + BAR_TOP, 8, BAR_HEIGHT,
                     menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE), WATER);
-        drawStatus(graphics, left + 8, top + 18);
+        drawStatus(graphics, left + 76, top + 18);
     }
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFF101214, false);
+        graphics.drawString(font, title, titleLabelX, titleLabelY, 0xFFFFFFFF, true);
         graphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, TEXT_DIM, false);
     }
 
@@ -119,24 +120,16 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         graphics.fill(x, y, x + 1, y + 16, PANEL_DARK);
     }
 
-    private void drawCaption(GuiGraphics graphics, String key, int x, int y) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, 0);
-        graphics.pose().scale(0.75F, 0.75F, 1.0F);
-        graphics.drawString(font, text(key), 0, 0, TEXT_DIM, false);
-        graphics.pose().popPose();
-    }
-
     private void drawCaptions(GuiGraphics graphics, int left, int top) {
         MachineKind kind = menu.kind();
-        drawCaption(graphics, "slot.input", left + 28, top + 36);
-        drawCaption(graphics, "slot.output", left + 132, top + 36);
+        UiIcons.draw(graphics, UiIcons.INPUT, left + 35, top + 35, 1, TEXT_DIM);
+        UiIcons.draw(graphics, UiIcons.OUTPUT, left + 139, top + 35, 1, TEXT_DIM);
         if (kind.hasReagentSlot())
-            drawCaption(graphics, "slot.reagent", left + 28, top + 64);
+            UiIcons.draw(graphics, UiIcons.REAGENT, left + 35, top + 63, 1, TEXT_DIM);
         if (kind.hasByproductSlot())
-            drawCaption(graphics, "slot.byproduct", left + 132, top + 64);
+            UiIcons.draw(graphics, UiIcons.BYPRODUCT, left + 139, top + 63, 1, TEXT_DIM);
         if (menu.get(MachineBlockEntity.DATA_ENERGY_MODE) == 0)
-            drawCaption(graphics, "slot.fuel", left + 100, top + 87);
+            UiIcons.draw(graphics, UiIcons.FUEL, left + 104, top + 91, 1, TEXT_DIM);
     }
 
     private void drawEmblem(GuiGraphics graphics, int x, int y) {
@@ -171,8 +164,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
         int width = Math.min(52, menu.get(MachineBlockEntity.DATA_PROGRESS) * 52 / max);
         graphics.fill(x, y, x + 52, y + 6, TRACK);
-        graphics.fill(x, y, x + width, y + 6, OK);
-        graphics.fill(x, y, x + width, y + 2, 0x55FFFFFF);
+        graphics.fillGradient(x, y, x + width, y + 6, 0xFFA6F0A6, 0xFF3FA83F);
     }
 
     private void drawPower(GuiGraphics graphics, int left, int top) {
@@ -191,7 +183,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         int filled = Math.max(0, Math.min(height, height * permille / 1000));
         graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, SLOT_EDGE);
         graphics.fill(x, y, x + width, y + height, TRACK);
-        graphics.fill(x, y + height - filled, x + width, y + height, color);
+        graphics.fillGradient(x, y + height - filled, x + width, y + height, color, dim(color));
         graphics.fill(x, y + height - filled, x + 2, y + height, 0x44FFFFFF);
         for (int tick = 1; tick < 4; tick++)
             graphics.fill(x + width - 3, y + tick * height / 4, x + width, y + tick * height / 4 + 1, SLOT_EDGE);
@@ -245,15 +237,15 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         };
     }
 
+    /** A centered badge showing the machine state as a pictogram. */
     private void drawStatus(GuiGraphics graphics, int x, int y) {
-        int color = status() == Status.WORKING ? OK : (status() == Status.NO_INPUT ? TEXT_DIM : WARN);
-        int row = 0;
-        for (var line : font.split(statusText(), imageWidth - 16)) {
-            if (row == 2)
-                break;
-            graphics.drawString(font, line, x, y + row * 9, color, false);
-            row++;
-        }
+        Status status = status();
+        int color = UiIcons.colorOf(status);
+        boolean pulse = status == Status.WORKING && (System.currentTimeMillis() / 400) % 2 == 0;
+        graphics.fill(x, y, x + 24, y + 20, FRAME);
+        graphics.fillGradient(x + 1, y + 1, x + 23, y + 19, PANEL_LIGHT, PANEL_DARK);
+        graphics.fill(x + 1, y + 18, x + 23, y + 19, color);
+        UiIcons.draw(graphics, UiIcons.of(status), x + 5, y + 3, 2, pulse ? 0xFFFFFFFF : color);
     }
 
     // -------------------------------------------------------------------------
@@ -264,33 +256,52 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return mouseX >= leftPos + x && mouseX < leftPos + x + w && mouseY >= topPos + y && mouseY < topPos + y + h;
     }
 
+    private int hintId = -1;
+    private long hintSince;
+
     private void renderHints(GuiGraphics graphics, int mouseX, int mouseY) {
+        Component hint = null;
+        int id = -1;
         if (hoveredSlot != null && hoveredSlot.isActive() && !hoveredSlot.hasItem()
                 && hoveredSlot.index < MachineBlockEntity.SLOT_COUNT) {
-            Component hint = switch (hoveredSlot.index) {
+            id = hoveredSlot.index;
+            hint = switch (hoveredSlot.index) {
                 case MachineBlockEntity.SLOT_INPUT -> text("hint.input", inputHint());
                 case MachineBlockEntity.SLOT_OUTPUT -> text("hint.output");
                 case MachineBlockEntity.SLOT_FUEL -> text("hint.fuel");
                 case MachineBlockEntity.SLOT_REAGENT -> text("hint.reagent", reagentHint());
                 default -> text("hint.byproduct");
             };
-            graphics.renderTooltip(font, hint, mouseX, mouseY);
-            return;
+        } else {
+            boolean energy = menu.get(MachineBlockEntity.DATA_ENERGY_MODE) == 1;
+            if (over(mouseX, mouseY, 10, BAR_TOP, 8, BAR_HEIGHT)) {
+                int permille = energy ? menu.get(MachineBlockEntity.DATA_ENERGY_PERMILLE)
+                        : menu.get(MachineBlockEntity.DATA_BURN_TIME) * 1000
+                                / Math.max(1, menu.get(MachineBlockEntity.DATA_BURN_DURATION));
+                id = 10;
+                hint = text(energy ? "hint.energy" : "hint.burn", permille / 10);
+            } else if (menu.kind().usesWater() && over(mouseX, mouseY, 158, BAR_TOP, 8, BAR_HEIGHT)) {
+                id = 11;
+                hint = text("hint.water", menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE) / 10);
+            } else if (over(mouseX, mouseY, 76, 18, 24, 20)) {
+                id = 12;
+                hint = statusText();
+            } else if (over(mouseX, mouseY, 62, 44, 52, 36)) {
+                int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
+                int percent = menu.get(MachineBlockEntity.DATA_PROGRESS) * 100 / max;
+                id = 13;
+                hint = text("hint.progress", percent, max / 20);
+            }
         }
 
-        boolean energy = menu.get(MachineBlockEntity.DATA_ENERGY_MODE) == 1;
-        if (over(mouseX, mouseY, 10, BAR_TOP, 8, BAR_HEIGHT)) {
-            int permille = energy ? menu.get(MachineBlockEntity.DATA_ENERGY_PERMILLE)
-                    : menu.get(MachineBlockEntity.DATA_BURN_TIME) * 1000
-                            / Math.max(1, menu.get(MachineBlockEntity.DATA_BURN_DURATION));
-            graphics.renderTooltip(font, text(energy ? "hint.energy" : "hint.burn", permille / 10), mouseX, mouseY);
-        } else if (menu.kind().usesWater() && over(mouseX, mouseY, 158, BAR_TOP, 8, BAR_HEIGHT)) {
-            graphics.renderTooltip(font,
-                    text("hint.water", menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE) / 10), mouseX, mouseY);
-        } else if (over(mouseX, mouseY, 62, 40, 52, 36)) {
-            int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
-            int percent = menu.get(MachineBlockEntity.DATA_PROGRESS) * 100 / max;
-            graphics.renderTooltip(font, text("hint.progress", percent, max / 20), mouseX, mouseY);
+        if (id != hintId) {
+            hintId = id;
+            hintSince = System.currentTimeMillis();
         }
+        if (hint == null || !ClientConfig.guiHints(menu.kind()))
+            return;
+        if (System.currentTimeMillis() - hintSince < ClientConfig.hintDelayMs())
+            return;
+        graphics.renderTooltip(font, hint, mouseX, mouseY);
     }
 }
