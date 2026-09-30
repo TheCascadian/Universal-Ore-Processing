@@ -7,7 +7,9 @@ import com.thecascadian.universaloreprocessing.block.MachineBlock;
 import com.thecascadian.universaloreprocessing.block.MachineBlockEntity;
 import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.block.MachineMenu;
+import com.thecascadian.universaloreprocessing.item.GuideBookItem;
 import com.thecascadian.universaloreprocessing.item.MaterialItem;
+import com.thecascadian.universaloreprocessing.item.ReagentItem;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.material.OreProcessingGameTests;
@@ -104,7 +106,7 @@ public final class RegistryHandler {
             MachineKind.class);
     public static final Map<MaterialItem.Stage, DeferredHolder<Item, MaterialItem>> STAGE_ITEMS = new EnumMap<>(
             MaterialItem.Stage.class);
-    public static final Map<Reagent, DeferredHolder<Item, Item>> REAGENT_ITEMS = new EnumMap<>(Reagent.class);
+    public static final Map<Reagent, DeferredHolder<Item, ReagentItem>> REAGENT_ITEMS = new EnumMap<>(Reagent.class);
 
     static {
         for (MachineKind kind : MachineKind.values()) {
@@ -116,9 +118,13 @@ public final class RegistryHandler {
                     () -> new MaterialItem(stage, new Item.Properties())));
         }
         for (Reagent reagent : Reagent.values()) {
-            REAGENT_ITEMS.put(reagent, ITEMS.register(reagent.itemId(), () -> new Item(new Item.Properties())));
+            REAGENT_ITEMS.put(reagent, ITEMS.register(reagent.itemId(),
+                    () -> new ReagentItem(reagent, new Item.Properties())));
         }
     }
+
+    public static final DeferredHolder<Item, GuideBookItem> GUIDE_BOOK = ITEMS.register("refinery_guide",
+            () -> new GuideBookItem(new Item.Properties().stacksTo(1)));
 
     public static final DeferredHolder<Item, BlockItem> ORE_CRUSHER_ITEM = MACHINE_ITEMS.get(MachineKind.CRUSHER);
     public static final DeferredHolder<Item, BlockItem> ORE_WASHER_ITEM = MACHINE_ITEMS.get(MachineKind.WASHER);
@@ -159,8 +165,10 @@ public final class RegistryHandler {
                     .title(Component.translatable("itemGroup." + UniversalOreProcessing.MODID))
                     .icon(() -> new ItemStack(ORE_CRUSHER_ITEM.get()))
                     .displayItems((params, output) -> {
+                        output.accept(GUIDE_BOOK.get());
                         for (MachineKind kind : MachineKind.values()) {
-                            output.accept(MACHINE_ITEMS.get(kind).get());
+                            if (OreProcessingConfig.tierEnabled(kind))
+                                output.accept(MACHINE_ITEMS.get(kind).get());
                         }
                         for (Reagent reagent : Reagent.values()) {
                             output.accept(reagent.item());
@@ -282,6 +290,7 @@ public final class RegistryHandler {
                 .strength(3.5F)
                 .sound(SoundType.METAL)
                 .requiresCorrectToolForDrops()
+                .noOcclusion()
                 .lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0);
         return new MachineBlock(properties, kind);
     }

@@ -61,6 +61,8 @@ public class OreProcessingConfig {
         public final ModConfigSpec.IntValue energyCapacity;
 
         // refinery stations
+        public final ModConfigSpec.IntValue maxTier;
+        public final ModConfigSpec.BooleanValue giveGuide;
         public final ModConfigSpec.BooleanValue strictAffinities;
         public final ModConfigSpec.ConfigValue<List<? extends String>> materialTraits;
         public final ModConfigSpec.ConfigValue<List<? extends String>> defaultTraits;
@@ -157,6 +159,12 @@ public class OreProcessingConfig {
             builder.pop();
 
             builder.push("refinery");
+            maxTier = builder
+                    .comment("Highest refinery tier that is active. 0 is only the crusher, washer and smelter. 1 to 3 add sorting, furnaces and chemistry, 4 to 8 add the advanced stations. Stations above this tier stop working and are hidden from the creative tab and JEI.")
+                    .defineInRange("max_tier", 3, 0, 8);
+            giveGuide = builder
+                    .comment("Give every player one Refinery Guide book the first time they join a world.")
+                    .define("give_guide_on_first_join", true);
             strictAffinities = builder
                     .comment("If true each refining station only accepts materials that have a matching trait (for example flotation only takes sulfides). If false every station accepts every material.")
                     .define("strict_affinities", true);
@@ -222,8 +230,15 @@ public class OreProcessingConfig {
     // Per-station settings. The three base machines keep their original option names.
     // -------------------------------------------------------------------------
 
+    /** Whether the station's tier is within max_tier. */
+    public static boolean tierEnabled(MachineKind kind) {
+        return kind.tier() <= get(COMMON.maxTier);
+    }
+
     public static boolean enabled(MachineKind kind) {
         Common config = COMMON;
+        if (!tierEnabled(kind))
+            return false;
         return switch (kind) {
             case CRUSHER -> get(config.crushEnabled);
             case WASHER -> get(config.washEnabled);

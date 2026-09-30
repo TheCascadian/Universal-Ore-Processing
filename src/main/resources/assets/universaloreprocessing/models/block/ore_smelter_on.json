@@ -1,9 +1,76 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "minecraft:block/block",
   "textures": {
-    "top": "universaloreprocessing:block/machine_top",
-    "bottom": "universaloreprocessing:block/machine_bottom",
-    "side": "universaloreprocessing:block/machine_side",
+    "particle": "universaloreprocessing:block/machine_side_t0",
+    "side": "universaloreprocessing:block/machine_side_t0",
+    "top": "universaloreprocessing:block/machine_top_t0",
+    "bottom": "universaloreprocessing:block/machine_bottom_t0",
     "front": "universaloreprocessing:block/ore_smelter_front_on"
-  }
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        13,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#bottom"
+        }
+      }
+    },
+    {
+      "from": [
+        9,
+        13,
+        9
+      ],
+      "to": [
+        14,
+        16,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#bottom"
+        }
+      }
+    }
+  ]
 }

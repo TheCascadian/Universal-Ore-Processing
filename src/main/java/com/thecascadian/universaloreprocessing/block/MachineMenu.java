@@ -49,20 +49,25 @@ public class MachineMenu extends AbstractContainerMenu {
         this.data = data;
         this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
 
-        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_INPUT, 44, 17) {
+        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_INPUT, 28, 44) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return kind.accepts(stack);
             }
         });
-        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_OUTPUT, 116, 26));
-        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_FUEL, 56, 53) {
+        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_OUTPUT, 132, 44));
+        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_FUEL, 80, 82) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return isFuel(stack);
+                return isFuel(stack) && usesFuel();
+            }
+
+            @Override
+            public boolean isActive() {
+                return usesFuel();
             }
         });
-        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_REAGENT, 68, 17) {
+        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_REAGENT, 28, 72) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return kind.acceptsReagent(stack);
@@ -73,7 +78,7 @@ public class MachineMenu extends AbstractContainerMenu {
                 return kind.hasReagentSlot();
             }
         });
-        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_BYPRODUCT, 116, 48) {
+        addSlot(new SlotItemHandler(handler, MachineBlockEntity.SLOT_BYPRODUCT, 132, 72) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -87,17 +92,22 @@ public class MachineMenu extends AbstractContainerMenu {
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(inventory, col + row * 9 + 9, 8 + col * 18, 120 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inventory, col, 8 + col * 18, 142));
+            addSlot(new Slot(inventory, col, 8 + col * 18, 178));
         }
         addDataSlots(data);
     }
 
     public MachineKind kind() {
         return kind;
+    }
+
+    /** Fuel is only used when the machines are not powered by FE. */
+    private boolean usesFuel() {
+        return data.get(MachineBlockEntity.DATA_ENERGY_MODE) == 0;
     }
 
     public int get(int index) {
@@ -126,7 +136,7 @@ public class MachineMenu extends AbstractContainerMenu {
         } else if (kind.acceptsReagent(stack)) {
             if (!moveItemStackTo(stack, MachineBlockEntity.SLOT_REAGENT, MachineBlockEntity.SLOT_REAGENT + 1, false))
                 return ItemStack.EMPTY;
-        } else if (isFuel(stack)) {
+        } else if (isFuel(stack) && usesFuel()) {
             if (!moveItemStackTo(stack, MachineBlockEntity.SLOT_FUEL, MachineBlockEntity.SLOT_FUEL + 1, false))
                 return ItemStack.EMPTY;
         } else if (index < INVENTORY_END) {

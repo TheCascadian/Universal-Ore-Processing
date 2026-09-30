@@ -169,7 +169,7 @@ public final class OreProcessingGameTests {
                 MachineKind.OXIDATION_CONVERTER, MachineKind.VACUUM_OUTGASSER};
 
         for (int i = 0; i < stations.length; i++) {
-            Plan plan = ProcessRules.plan(stations[i], stack);
+            Plan plan = ProcessRules.preview(stations[i], MaterialItem.stageOf(stack), "iron");
             if (plan == null) {
                 helper.fail(stations[i].id() + " rejected " + MaterialItem.stageOf(stack));
                 return;
@@ -185,13 +185,13 @@ public final class OreProcessingGameTests {
 
     @GameTest(template = EMPTY_TEMPLATE)
     public static void copperFlotationAndRefining(GameTestHelper helper) {
-        Plan flotation = ProcessRules.plan(MachineKind.FLOTATION_CELL, MaterialItem.create(Stage.CRUSHED, "copper", 1));
+        Plan flotation = ProcessRules.preview(MachineKind.FLOTATION_CELL, Stage.CRUSHED, "copper");
         if (flotation == null || MaterialItem.stageOf(flotation.primary()) != Stage.FROTH
                 || MaterialItem.stageOf(flotation.secondary()) != Stage.TAILINGS) {
             helper.fail("Flotation should split copper into froth and tailings");
             return;
         }
-        Plan refining = ProcessRules.plan(MachineKind.ELECTROREFINING_CELL, MaterialItem.create(Stage.CRUDE, "copper", 1));
+        Plan refining = ProcessRules.preview(MachineKind.ELECTROREFINING_CELL, Stage.CRUDE, "copper");
         if (refining == null || MaterialItem.stageOf(refining.primary()) != Stage.CATHODE) {
             helper.fail("Electrorefining should plate copper onto a cathode");
             return;

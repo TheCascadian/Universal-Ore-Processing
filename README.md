@@ -23,7 +23,8 @@ Universal Ore Processing scans the common item tags at startup, works out which 
 *   **No per-material registration.** The same three items serve every material, and their names and colors are derived from the material they carry.
 *   **No datapack bloat.** Crushing and washing are each a single dynamic recipe evaluated at craft time, so no recipe JSON is generated per ore.
 *   **Reload safe.** Discovery reruns after every datapack reload and the result is swapped in atomically, so machines always see a consistent view.
-*   **A full refinery tech tree.** Twenty optional stations across eight tiers (sorting, pyrometallurgy, hydrometallurgy, electrometallurgy, vacuum refining, vapor and fractionation, crystal growth, advanced synthesis) turn the base chain into a deep automation puzzle.
+*   **A full refinery tech tree, opt-in by tier.** Twenty optional stations across eight tiers, of which tiers I to III are active by default (`max_tier` in the config) (sorting, pyrometallurgy, hydrometallurgy, electrometallurgy, vacuum refining, vapor and fractionation, crystal growth, advanced synthesis) turn the base chain into a deep automation puzzle.
+*   **Explains itself.** Every machine screen has a live status line ("Needs reagent: Leach Acid"), every item and machine has a plain-language tooltip with Shift details, and an in-game Refinery Guide book is given on first join and can be crafted from a book and a copper ingot.
 *   **Traits decide routing.** Each material has physical traits (dense, sulfide, magnetic, refractory and so on) that decide which stations accept it, so the tree behaves like real metallurgy and stays tunable from the config.
 *   **Fuel or power.** Machines burn fuel by default. A config switch moves them to Forge Energy.
 
@@ -77,7 +78,7 @@ Every station accepts a stage item of a material that has a matching trait, opti
 | VIII | Gas Centrifuge Cascade | Purified Ore, Dust or Precipitate (isotopic) | Process Gas Canister | Enriched Fraction, Depleted Tails |
 | VIII | Radiochemical Hot Cell | Enriched or Depleted (radioactive) | Leach Acid | Fissile Stream, Vitrified Waste Glass |
 
-Each station has its own crafting recipe that requires a machine of the previous tier, and all reagents are craftable from vanilla items. Hazards are optional: with `hazards_enabled`, toxic, hot and radioactive stations harm players who stand close to them while they work.
+Tiers above `max_tier` (default 3) are switched off until you raise it. Each station has its own crafting recipe that requires a machine of the previous tier, and all reagents are craftable from vanilla items. Hazards are optional: with `hazards_enabled`, toxic, hot and radioactive stations harm players who stand close to them while they work.
 
 ***
 
@@ -156,6 +157,8 @@ For a standard install of the Minecraft Launcher:
 
 | Option | Default | Purpose |
 |---|---|---|
+| `max_tier` | `3` | Highest active refinery tier. Raise it to 8 to unlock the advanced stations; stations above it stop working and are hidden from the creative tab and JEI |
+| `give_guide_on_first_join` | `true` | Give each player one Refinery Guide book the first time they join a world |
 | `strict_affinities` | `true` | Stations only accept materials with a matching trait. Set to `false` to let every station take every material |
 | `material_traits` | empty | Per-material trait overrides as `material=trait,trait`, for example `tin=dense,oxide,electro` |
 | `default_traits` | `dense`, `oxide`, `leachable`, `electro`, `precipitable` | Traits of materials that are not built in, so unfamiliar modded ores still enter the tree |

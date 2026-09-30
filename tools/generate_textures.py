@@ -432,6 +432,35 @@ def kind_front(name, tier, lit_state, index):
     return image
 
 
+def tier_panel(base, rgb, rng, rivets=True, band=True):
+    """A machine panel tinted toward the tier color, with a band and corner rivets."""
+    image = machine_panel(base, rng)
+    for y in range(SIZE):
+        for x in range(SIZE):
+            r, g, b, a = image.getpixel((x, y))
+            k = 0.22
+            image.putpixel((x, y), (int(r * (1 - k) + rgb[0] * k), int(g * (1 - k) + rgb[1] * k),
+                                    int(b * (1 - k) + rgb[2] * k), 255))
+    if band:
+        fill_rect(image, 1, 13, 15, 15, rgb + (255,))
+    if rivets:
+        for x, y in ((2, 2), (13, 2), (2, 11), (13, 11)):
+            image.putpixel((x, y), (200, 200, 208, 255))
+    return image
+
+
+def guide_book():
+    image = blank()
+    fill_rect(image, 3, 2, 13, 14, (40, 92, 58, 255))
+    fill_rect(image, 3, 2, 4, 14, (24, 60, 38, 255))
+    fill_rect(image, 12, 2, 13, 14, (60, 120, 80, 255))
+    fill_rect(image, 5, 4, 11, 5, (214, 172, 70, 255))
+    fill_rect(image, 6, 7, 10, 8, (214, 172, 70, 255))
+    fill_rect(image, 6, 9, 10, 10, (214, 172, 70, 255))
+    fill_rect(image, 4, 13, 12, 14, (232, 220, 188, 255))
+    return image
+
+
 def save(image, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     image.save(path)
@@ -454,6 +483,12 @@ def main():
         save(factory(), ITEM_DIR / f"{name}.png")
     for name, factory in REAGENT_TEXTURES.items():
         save(factory(), ITEM_DIR / f"{name}.png")
+    save(guide_book(), ITEM_DIR / "refinery_guide.png")
+    for tier in range(9):
+        rgb = (TIER_COLORS[tier] if tier else (124, 135, 150))
+        save(tier_panel(128, rgb, random.Random(300 + tier), rivets=False, band=False), BLOCK_DIR / f"machine_top_t{tier}.png")
+        save(tier_panel(104, rgb, random.Random(320 + tier)), BLOCK_DIR / f"machine_side_t{tier}.png")
+        save(tier_panel(88, rgb, random.Random(340 + tier), rivets=False, band=False), BLOCK_DIR / f"machine_bottom_t{tier}.png")
     for index, (name, tier) in enumerate(KIND_TIERS.items()):
         save(kind_front(name, tier, False, index), BLOCK_DIR / f"{name}_front.png")
         save(kind_front(name, tier, True, index), BLOCK_DIR / f"{name}_front_on.png")

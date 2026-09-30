@@ -2,6 +2,7 @@ package com.thecascadian.universaloreprocessing.client;
 
 import com.thecascadian.universaloreprocessing.UniversalOreProcessing;
 import com.thecascadian.universaloreprocessing.block.MachineKind;
+import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.MaterialItem;
 import com.thecascadian.universaloreprocessing.material.MaterialDiscovery;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
@@ -78,7 +79,8 @@ public class OreProcessingJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
         for (MachineKind kind : MachineKind.values()) {
-            registration.addRecipeCategories(new Category(gui, kind));
+            if (OreProcessingConfig.tierEnabled(kind))
+                registration.addRecipeCategories(new Category(gui, kind));
         }
     }
 
@@ -130,7 +132,8 @@ public class OreProcessingJeiPlugin implements IModPlugin {
         }
 
         for (MachineKind kind : MachineKind.values()) {
-            registration.addRecipes(TYPES.get(kind), views.get(kind));
+            if (OreProcessingConfig.tierEnabled(kind))
+                registration.addRecipes(TYPES.get(kind), views.get(kind));
         }
     }
 
@@ -143,6 +146,8 @@ public class OreProcessingJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         for (MachineKind kind : MachineKind.values()) {
+            if (!OreProcessingConfig.tierEnabled(kind))
+                continue;
             registration.addRecipeCatalyst(new ItemStack(RegistryHandler.MACHINE_ITEMS.get(kind).get()),
                     TYPES.get(kind));
         }

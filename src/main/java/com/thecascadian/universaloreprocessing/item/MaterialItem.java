@@ -5,7 +5,9 @@ import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -164,6 +166,12 @@ public class MaterialItem extends Item {
         if (materialId == null)
             return Component.translatable(getDescriptionId() + ".generic");
         return Component.translatable(getDescriptionId(), materialName(materialId));
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
+            TooltipFlag flag) {
+        Tooltips.stage(stage, tooltip);
     }
 
     private static String prettify(String id) {

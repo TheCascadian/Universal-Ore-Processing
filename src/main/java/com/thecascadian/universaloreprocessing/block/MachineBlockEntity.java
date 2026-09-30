@@ -66,7 +66,8 @@ public class MachineBlockEntity extends BlockEntity implements MenuProvider {
     public static final int DATA_FLUID_PERMILLE = 4;
     public static final int DATA_ENERGY_PERMILLE = 5;
     public static final int DATA_ENERGY_MODE = 6;
-    public static final int DATA_COUNT = 7;
+    public static final int DATA_STATUS = 7;
+    public static final int DATA_COUNT = 8;
 
     private static final int TANK_CAPACITY = 4000;
     private static final int ENERGY_MAX_RECEIVE = 2000;
@@ -98,6 +99,7 @@ public class MachineBlockEntity extends BlockEntity implements MenuProvider {
     private final Energy energy;
 
     private int progress;
+    private Status status = Status.NO_INPUT;
     private int burnTime;
     private int burnDuration;
 
@@ -113,6 +115,7 @@ public class MachineBlockEntity extends BlockEntity implements MenuProvider {
                 case DATA_ENERGY_PERMILLE -> (int) ((long) energy.getEnergyStored() * 1000L
                         / Math.max(1, energy.getMaxEnergyStored()));
                 case DATA_ENERGY_MODE -> useEnergy() ? 1 : 0;
+                case DATA_STATUS -> status.ordinal();
                 default -> 0;
             };
         }
@@ -223,9 +226,14 @@ public class MachineBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private void tick(Level level, BlockPos pos, BlockState state) {
-        Plan plan = planFor(level, items.getStackInSlot(SLOT_INPUT));
-        boolean canWork = plan != null && hasRoomFor(plan) && hasWater(plan) && hasReagent(plan);
-        boolean active = canWork && drawPower();
+        ItemStack input = items.getStackInSlot(SLOT_INPUT);
+        Plan plan = planFor(level, input);
+        Status blocker = blocker(input, plan);
+        boolean active = blocker == null && drawPower();
+        if (blocker != null)
+            status = blocker;
+        else
+            status = active ? Status.WORKING : (useEnergy() ? Status.NEEDS_POWER : Status.NEEDS_FUEL);
 
         if (active) {
             progress++;
@@ -244,6 +252,24 @@ public class MachineBlockEntity extends BlockEntity implements MenuProvider {
         if (state.getValue(MachineBlock.LIT) != active) {
             level.setBlock(pos, state.setValue(MachineBlock.LIT, active), Block.UPDATE_ALL);
         }
+    }
+
+    /** The first thing that stops the machine from starting an operation, or null if nothing does. */
+    @Nullable
+    private Status blocker(ItemStack input, @Nullable Plan plan) {
+        if (!OreProcessingConfig.enabled(kind))
+            return Status.DISABLED;
+        if (input.isEmpty())
+            return Status.NO_INPUT;
+        if (plan == null)
+            return Status.REJECTED;
+        if (!hasRoomFor(plan))
+            return Status.OUTPUT_FULL;
+        if (!hasWater(plan))
+            return Status.NEEDS_WATER;
+        if (!hasReagent(plan))
+            return Status.NEEDS_REAGENT;
+        return null;
     }
 
     /** Null means the input cannot be processed at all, an empty primary stack means a failed roll. */
