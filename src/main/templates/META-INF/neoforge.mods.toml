@@ -1,0 +1,27 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+    modId="${mod_id}"
+    version="${mod_version}"
+    displayName="${mod_name}"
+    authors="${mod_authors}"
+    description='''
+        Discovers every ore in the game and processes it through crushing, washing and smelting
+        with a small fixed set of generic items, without per-material registration.
+    '''
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

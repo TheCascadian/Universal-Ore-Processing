@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FCF",
+    "CUC",
+    "FCF"
+  ],
+  "key": {
+    "F": {
+      "item": "minecraft:flint"
+    },
+    "C": {
+      "item": "minecraft:cobblestone"
+    },
+    "U": {
+      "item": "minecraft:furnace"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:ore_crusher",
+    "count": 1
+  }
+}
