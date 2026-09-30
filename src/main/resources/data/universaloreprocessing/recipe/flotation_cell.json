@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GSG",
+    "BWB",
+    "III"
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "S": {
+      "item": "minecraft:slime_ball"
+    },
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "W": {
+      "item": "universaloreprocessing:ore_washer"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:flotation_cell",
+    "count": 1
+  }
+}

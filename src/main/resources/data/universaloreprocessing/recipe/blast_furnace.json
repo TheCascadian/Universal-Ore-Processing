@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "DSC",
+    "III"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:bricks"
+    },
+    "D": {
+      "item": "universaloreprocessing:density_classifier"
+    },
+    "S": {
+      "item": "universaloreprocessing:ore_smelter"
+    },
+    "C": {
+      "item": "minecraft:coal_block"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:blast_furnace",
+    "count": 1
+  }
+}

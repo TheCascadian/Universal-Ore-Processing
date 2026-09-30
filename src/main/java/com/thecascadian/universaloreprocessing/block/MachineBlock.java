@@ -5,12 +5,16 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import com.thecascadian.universaloreprocessing.item.Tooltips;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -29,9 +33,11 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
- * Block shared by the crusher, washer and smelter. Stores a facing and a lit
- * flag, opens the machine menu and, for the washer, accepts buckets and other
+ * Block shared by every machine. Stores a facing and a lit flag, opens the
+ * machine menu and, for stations with a water tank, accepts buckets and other
  * fluid containers.
  */
 public class MachineBlock extends BaseEntityBlock {
@@ -61,6 +67,12 @@ public class MachineBlock extends BaseEntityBlock {
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
         return CODEC;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
+            TooltipFlag flag) {
+        Tooltips.machine(kind, tooltip);
     }
 
     @Override
@@ -96,7 +108,7 @@ public class MachineBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
-        if (kind != MachineKind.WASHER || stack.getCapability(Capabilities.FluidHandler.ITEM) == null)
+        if (!kind.usesWater() || stack.getCapability(Capabilities.FluidHandler.ITEM) == null)
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         if (!level.isClientSide)

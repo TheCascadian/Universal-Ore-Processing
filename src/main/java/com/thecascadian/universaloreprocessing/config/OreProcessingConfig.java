@@ -1,11 +1,16 @@
 package com.thecascadian.universaloreprocessing.config;
 
+import com.thecascadian.universaloreprocessing.block.MachineKind;
+import com.thecascadian.universaloreprocessing.process.ProcessRule;
+import com.thecascadian.universaloreprocessing.process.ProcessRules;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Configuration settings for Universal Ore Processing.  The values here are
@@ -54,6 +59,26 @@ public class OreProcessingConfig {
         public final ModConfigSpec.BooleanValue useEnergy;
         public final ModConfigSpec.IntValue energyPerTick;
         public final ModConfigSpec.IntValue energyCapacity;
+
+        // refinery stations
+        public final ModConfigSpec.IntValue maxTier;
+        public final ModConfigSpec.BooleanValue giveGuide;
+        public final ModConfigSpec.BooleanValue strictAffinities;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> materialTraits;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> defaultTraits;
+        public final ModConfigSpec.BooleanValue scalePowerByTier;
+        public final ModConfigSpec.DoubleValue stationWaterMultiplier;
+        public final ModConfigSpec.DoubleValue wasteRecycleChance;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> slimeMaterials;
+        public final ModConfigSpec.BooleanValue consumeReagents;
+        public final ModConfigSpec.BooleanValue hazardsEnabled;
+        public final ModConfigSpec.IntValue hazardRadius;
+        public final ModConfigSpec.BooleanValue creativeAllStages;
+
+        public final Map<MachineKind, ModConfigSpec.BooleanValue> stationEnabled = new EnumMap<>(MachineKind.class);
+        public final Map<MachineKind, ModConfigSpec.IntValue> stationTicks = new EnumMap<>(MachineKind.class);
+        public final Map<MachineKind, ModConfigSpec.DoubleValue> stationYield = new EnumMap<>(MachineKind.class);
+        public final Map<MachineKind, ModConfigSpec.DoubleValue> stationByproduct = new EnumMap<>(MachineKind.class);
 
         Common(ModConfigSpec.Builder builder) {
             builder.push("general");
@@ -132,11 +157,124 @@ public class OreProcessingConfig {
                     .comment("FE buffer of each machine when use_energy is enabled.")
                     .defineInRange("energy_capacity", 20000, 1, 10000000);
             builder.pop();
+
+            builder.push("refinery");
+            maxTier = builder
+                    .comment("Highest refinery tier that is active. 0 is only the crusher, washer and smelter. 1 to 3 add sorting, furnaces and chemistry, 4 to 8 add the advanced stations. Stations above this tier stop working and are hidden from the creative tab and JEI.")
+                    .defineInRange("max_tier", 3, 0, 8);
+            giveGuide = builder
+                    .comment("Give every player one Refinery Guide book the first time they join a world.")
+                    .define("give_guide_on_first_join", true);
+            strictAffinities = builder
+                    .comment("If true each refining station only accepts materials that have a matching trait (for example flotation only takes sulfides). If false every station accepts every material.")
+                    .define("strict_affinities", true);
+            materialTraits = builder
+                    .comment("Per-material trait overrides as 'material=trait,trait', replacing the built-in traits of that material (e.g. 'tin=dense,oxide,electro'). Traits: dense, sulfide, magnetic, oxide, refractory, leachable, extractable, precipitable, electro, electrolysis, structural, superalloy, hydrocarbon, carbonyl, semiconductor, crystal, sinterable, isotopic, radioactive, noble.")
+                    .defineList("material_traits", new ArrayList<>(), o -> o instanceof String);
+            defaultTraits = builder
+                    .comment("Traits given to every material that has no built-in or overridden traits, so unfamiliar modded ores still enter the refining tree.")
+                    .defineList("default_traits", List.of("dense", "oxide", "leachable", "electro", "precipitable"),
+                            o -> o instanceof String);
+            scalePowerByTier = builder
+                    .comment("If true higher tier stations draw proportionally more FE or burn fuel faster than the base machines.")
+                    .define("scale_power_by_tier", true);
+            stationWaterMultiplier = builder
+                    .comment("Multiplier on the water every refining station consumes per operation.")
+                    .defineInRange("station_water_multiplier", 1.0D, 0.0D, 16.0D);
+            wasteRecycleChance = builder
+                    .comment("Chance that the Ore Crusher turns one byproduct item (gangue, tailings, slag and so on) into one dust.")
+                    .defineInRange("waste_recycle_chance", 0.25D, 0.0D, 1.0D);
+            slimeMaterials = builder
+                    .comment("Precious materials that anode slime can carry, tried in order. The first one present in the pack is used.")
+                    .defineList("slime_materials", List.of("gold", "silver"), o -> o instanceof String);
+            consumeReagents = builder
+                    .comment("If false reagents (acid, flux, gases and so on) are required but never used up.")
+                    .define("consume_reagents", true);
+            hazardsEnabled = builder
+                    .comment("If true running stations harm players standing close to them: toxic stations poison, hot stations set fire and radioactive stations wither.")
+                    .define("hazards_enabled", false);
+            hazardRadius = builder
+                    .comment("Radius in blocks of the station hazards.")
+                    .defineInRange("hazard_radius", 4, 1, 16);
+            creativeAllStages = builder
+                    .comment("If true the refinery creative tab lists every stage item for every material. If false it lists one generic item per stage.")
+                    .define("creative_all_stages", false);
+
+            builder.push("stations");
+            for (MachineKind kind : MachineKind.values()) {
+                ProcessRule rule = ProcessRules.get(kind);
+                if (rule == null)
+                    continue;
+                builder.push(kind.id());
+                stationEnabled.put(kind, builder
+                        .comment("Enable this station.")
+                        .define("enabled", true));
+                stationTicks.put(kind, builder
+                        .comment("Ticks this station needs per operation.")
+                        .defineInRange("ticks", rule.ticks(), 1, 72000));
+                stationYield.put(kind, builder
+                        .comment("Multiplier on the main output count (the fractional part is a chance of one extra item, minimum 1).")
+                        .defineInRange("yield_multiplier", 1.0D, 0.0D, 16.0D));
+                if (rule.secondary() != null) {
+                    stationByproduct.put(kind, builder
+                            .comment("Chance per operation that the byproduct appears.")
+                            .defineInRange("byproduct_chance", rule.secondary().chance(), 0.0D, 1.0D));
+                }
+                builder.pop();
+            }
+            builder.pop(2);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Per-station settings. The three base machines keep their original option names.
+    // -------------------------------------------------------------------------
+
+    /** Whether the station's tier is within max_tier. */
+    public static boolean tierEnabled(MachineKind kind) {
+        return kind.tier() <= get(COMMON.maxTier);
+    }
+
+    public static boolean enabled(MachineKind kind) {
+        Common config = COMMON;
+        if (!tierEnabled(kind))
+            return false;
+        return switch (kind) {
+            case CRUSHER -> get(config.crushEnabled);
+            case WASHER -> get(config.washEnabled);
+            case SMELTER -> get(config.smeltEnabled);
+            default -> get(config.stationEnabled.get(kind));
+        };
+    }
+
+    public static int ticks(MachineKind kind) {
+        Common config = COMMON;
+        return switch (kind) {
+            case CRUSHER -> get(config.crusherTicks);
+            case WASHER -> get(config.washerTicks);
+            case SMELTER -> get(config.smelterTicks);
+            default -> get(config.stationTicks.get(kind));
+        };
+    }
+
+    public static double yieldMultiplier(MachineKind kind) {
+        Common config = COMMON;
+        return switch (kind) {
+            case CRUSHER -> get(config.crusherYieldMultiplier);
+            case WASHER -> get(config.washerYieldMultiplier);
+            case SMELTER -> get(config.smelterYieldMultiplier);
+            default -> get(config.stationYield.get(kind));
+        };
+    }
+
+    public static double byproductChance(MachineKind kind) {
+        ModConfigSpec.DoubleValue value = COMMON.stationByproduct.get(kind);
+        return value == null ? 0.0D : get(value);
     }
 
     public static void register(ModContainer container) {
         container.registerConfig(ModConfig.Type.COMMON, COMMON_SPEC);
+        container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
     }
 
     /** Reads a value, falling back to its default while the config file has not been loaded yet. */

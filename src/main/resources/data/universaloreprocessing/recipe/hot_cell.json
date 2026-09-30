@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ONO",
+    "ICI",
+    "OOO"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:obsidian"
+    },
+    "N": {
+      "item": "minecraft:netherite_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "universaloreprocessing:centrifuge_cascade"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:hot_cell",
+    "count": 1
+  }
+}

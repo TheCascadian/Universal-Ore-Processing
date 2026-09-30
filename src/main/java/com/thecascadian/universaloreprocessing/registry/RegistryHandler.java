@@ -7,9 +7,13 @@ import com.thecascadian.universaloreprocessing.block.MachineBlock;
 import com.thecascadian.universaloreprocessing.block.MachineBlockEntity;
 import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.block.MachineMenu;
+import com.thecascadian.universaloreprocessing.item.GuideBookItem;
 import com.thecascadian.universaloreprocessing.item.MaterialItem;
+import com.thecascadian.universaloreprocessing.item.ReagentItem;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
+import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.material.OreProcessingGameTests;
+import com.thecascadian.universaloreprocessing.process.Reagent;
 import com.thecascadian.universaloreprocessing.recipe.CrushRecipe;
 import com.thecascadian.universaloreprocessing.recipe.WashRecipe;
 import net.minecraft.core.component.DataComponentType;
@@ -41,6 +45,9 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.EnumMap;
+import java.util.Map;
 
 
 @EventBusSubscriber(modid = UniversalOreProcessing.MODID, bus = EventBusSubscriber.Bus.MOD)
@@ -74,14 +81,19 @@ public final class RegistryHandler {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(Registries.BLOCK,
             UniversalOreProcessing.MODID);
 
-    public static final DeferredHolder<Block, MachineBlock> ORE_CRUSHER = BLOCKS.register(
-            MachineKind.CRUSHER.id(), () -> machineBlock(MachineKind.CRUSHER));
+    public static final Map<MachineKind, DeferredHolder<Block, MachineBlock>> MACHINE_BLOCKS = new EnumMap<>(
+            MachineKind.class);
 
-    public static final DeferredHolder<Block, MachineBlock> ORE_WASHER = BLOCKS.register(
-            MachineKind.WASHER.id(), () -> machineBlock(MachineKind.WASHER));
+    static {
+        for (MachineKind kind : MachineKind.values()) {
+            DeferredHolder<Block, MachineBlock> block = BLOCKS.register(kind.id(), () -> machineBlock(kind));
+            MACHINE_BLOCKS.put(kind, block);
+        }
+    }
 
-    public static final DeferredHolder<Block, MachineBlock> ORE_SMELTER = BLOCKS.register(
-            MachineKind.SMELTER.id(), () -> machineBlock(MachineKind.SMELTER));
+    public static final DeferredHolder<Block, MachineBlock> ORE_CRUSHER = MACHINE_BLOCKS.get(MachineKind.CRUSHER);
+    public static final DeferredHolder<Block, MachineBlock> ORE_WASHER = MACHINE_BLOCKS.get(MachineKind.WASHER);
+    public static final DeferredHolder<Block, MachineBlock> ORE_SMELTER = MACHINE_BLOCKS.get(MachineKind.SMELTER);
 
     // -------------------------------------------------------------------------
     // Items
@@ -90,23 +102,37 @@ public final class RegistryHandler {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM,
             UniversalOreProcessing.MODID);
 
-    public static final DeferredHolder<Item, BlockItem> ORE_CRUSHER_ITEM = ITEMS.register(
-            MachineKind.CRUSHER.id(), () -> new BlockItem(ORE_CRUSHER.get(), new Item.Properties()));
+    public static final Map<MachineKind, DeferredHolder<Item, BlockItem>> MACHINE_ITEMS = new EnumMap<>(
+            MachineKind.class);
+    public static final Map<MaterialItem.Stage, DeferredHolder<Item, MaterialItem>> STAGE_ITEMS = new EnumMap<>(
+            MaterialItem.Stage.class);
+    public static final Map<Reagent, DeferredHolder<Item, ReagentItem>> REAGENT_ITEMS = new EnumMap<>(Reagent.class);
 
-    public static final DeferredHolder<Item, BlockItem> ORE_WASHER_ITEM = ITEMS.register(
-            MachineKind.WASHER.id(), () -> new BlockItem(ORE_WASHER.get(), new Item.Properties()));
+    static {
+        for (MachineKind kind : MachineKind.values()) {
+            DeferredHolder<Block, MachineBlock> block = MACHINE_BLOCKS.get(kind);
+            MACHINE_ITEMS.put(kind, ITEMS.register(kind.id(), () -> new BlockItem(block.get(), new Item.Properties())));
+        }
+        for (MaterialItem.Stage stage : MaterialItem.Stage.values()) {
+            STAGE_ITEMS.put(stage, ITEMS.register(stage.itemId(),
+                    () -> new MaterialItem(stage, new Item.Properties())));
+        }
+        for (Reagent reagent : Reagent.values()) {
+            REAGENT_ITEMS.put(reagent, ITEMS.register(reagent.itemId(),
+                    () -> new ReagentItem(reagent, new Item.Properties())));
+        }
+    }
 
-    public static final DeferredHolder<Item, BlockItem> ORE_SMELTER_ITEM = ITEMS.register(
-            MachineKind.SMELTER.id(), () -> new BlockItem(ORE_SMELTER.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, GuideBookItem> GUIDE_BOOK = ITEMS.register("refinery_guide",
+            () -> new GuideBookItem(new Item.Properties().stacksTo(1)));
 
-    public static final DeferredHolder<Item, MaterialItem> CRUSHED_ORE = ITEMS.register(
-            "crushed_ore", () -> new MaterialItem(MaterialItem.Stage.CRUSHED, new Item.Properties()));
+    public static final DeferredHolder<Item, BlockItem> ORE_CRUSHER_ITEM = MACHINE_ITEMS.get(MachineKind.CRUSHER);
+    public static final DeferredHolder<Item, BlockItem> ORE_WASHER_ITEM = MACHINE_ITEMS.get(MachineKind.WASHER);
+    public static final DeferredHolder<Item, BlockItem> ORE_SMELTER_ITEM = MACHINE_ITEMS.get(MachineKind.SMELTER);
 
-    public static final DeferredHolder<Item, MaterialItem> PURIFIED_ORE = ITEMS.register(
-            "purified_ore", () -> new MaterialItem(MaterialItem.Stage.PURIFIED, new Item.Properties()));
-
-    public static final DeferredHolder<Item, MaterialItem> MATERIAL_DUST = ITEMS.register(
-            "material_dust", () -> new MaterialItem(MaterialItem.Stage.DUST, new Item.Properties()));
+    public static final DeferredHolder<Item, MaterialItem> CRUSHED_ORE = STAGE_ITEMS.get(MaterialItem.Stage.CRUSHED);
+    public static final DeferredHolder<Item, MaterialItem> PURIFIED_ORE = STAGE_ITEMS.get(MaterialItem.Stage.PURIFIED);
+    public static final DeferredHolder<Item, MaterialItem> MATERIAL_DUST = STAGE_ITEMS.get(MaterialItem.Stage.DUST);
 
     // -------------------------------------------------------------------------
     // Block entities and menus
@@ -117,7 +143,8 @@ public final class RegistryHandler {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineBlockEntity>> MACHINE_BLOCK_ENTITY = BLOCK_ENTITIES
             .register("machine", () -> BlockEntityType.Builder
-                    .of(MachineBlockEntity::new, ORE_CRUSHER.get(), ORE_WASHER.get(), ORE_SMELTER.get())
+                    .of(MachineBlockEntity::new, MACHINE_BLOCKS.values().stream()
+                            .map(DeferredHolder::get).toArray(Block[]::new))
                     .build(null));
 
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU,
@@ -138,11 +165,38 @@ public final class RegistryHandler {
                     .title(Component.translatable("itemGroup." + UniversalOreProcessing.MODID))
                     .icon(() -> new ItemStack(ORE_CRUSHER_ITEM.get()))
                     .displayItems((params, output) -> {
-                        output.accept(ORE_CRUSHER_ITEM.get());
-                        output.accept(ORE_WASHER_ITEM.get());
-                        output.accept(ORE_SMELTER_ITEM.get());
+                        output.accept(GUIDE_BOOK.get());
+                        for (MachineKind kind : MachineKind.values()) {
+                            if (OreProcessingConfig.tierEnabled(kind))
+                                output.accept(MACHINE_ITEMS.get(kind).get());
+                        }
+                        for (Reagent reagent : Reagent.values()) {
+                            output.accept(reagent.item());
+                        }
                         for (String materialId : MaterialRegistry.current().materials().keySet()) {
-                            for (MaterialItem.Stage stage : MaterialItem.Stage.values()) {
+                            output.accept(MaterialItem.create(MaterialItem.Stage.CRUSHED, materialId, 1));
+                            output.accept(MaterialItem.create(MaterialItem.Stage.PURIFIED, materialId, 1));
+                            output.accept(MaterialItem.create(MaterialItem.Stage.DUST, materialId, 1));
+                        }
+                    })
+                    .build());
+
+    // every other stage item, one generic stack each unless creative_all_stages lists them per material
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> STAGES_TAB = TABS
+            .register("refinery_stages", () -> CreativeModeTab.builder()
+                    .title(Component.translatable("itemGroup." + UniversalOreProcessing.MODID + ".stages"))
+                    .icon(() -> new ItemStack(MaterialItem.Stage.CATHODE.item()))
+                    .displayItems((params, output) -> {
+                        boolean perMaterial = OreProcessingConfig.get(OreProcessingConfig.COMMON.creativeAllStages);
+                        for (MaterialItem.Stage stage : MaterialItem.Stage.values()) {
+                            if (stage == MaterialItem.Stage.CRUSHED || stage == MaterialItem.Stage.PURIFIED
+                                    || stage == MaterialItem.Stage.DUST)
+                                continue;
+                            if (!perMaterial) {
+                                output.accept(stage.item());
+                                continue;
+                            }
+                            for (String materialId : MaterialRegistry.current().materials().keySet()) {
                                 output.accept(MaterialItem.create(stage, materialId, 1));
                             }
                         }
@@ -236,6 +290,7 @@ public final class RegistryHandler {
                 .strength(3.5F)
                 .sound(SoundType.METAL)
                 .requiresCorrectToolForDrops()
+                .noOcclusion()
                 .lightLevel(state -> state.getValue(MachineBlock.LIT) ? 13 : 0);
         return new MachineBlock(properties, kind);
     }
