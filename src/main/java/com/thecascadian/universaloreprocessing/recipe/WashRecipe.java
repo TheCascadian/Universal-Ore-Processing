@@ -22,9 +22,11 @@ import net.minecraft.world.level.Level;
  */
 public class WashRecipe implements Recipe<SingleRecipeInput> {
 
-    public static final MapCodec<WashRecipe> CODEC = MapCodec.unit(new WashRecipe());
-    public static final StreamCodec<RegistryFriendlyByteBuf, WashRecipe> STREAM_CODEC =
-            StreamCodec.unit(new WashRecipe());
+    // StreamCodec.unit only encodes an object equal to its instance, so both codecs must share one
+    private static final WashRecipe INSTANCE = new WashRecipe();
+
+    public static final MapCodec<WashRecipe> CODEC = MapCodec.unit(INSTANCE);
+    public static final StreamCodec<RegistryFriendlyByteBuf, WashRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
     /** Shared by the recipe, the machine tests and the JEI view; empty when the input is not washable. */
     public static ItemStack craft(ItemStack input) {

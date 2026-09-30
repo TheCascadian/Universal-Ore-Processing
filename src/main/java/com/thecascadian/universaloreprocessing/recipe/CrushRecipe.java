@@ -23,9 +23,11 @@ import net.minecraft.world.level.Level;
  */
 public class CrushRecipe implements Recipe<SingleRecipeInput> {
 
-    public static final MapCodec<CrushRecipe> CODEC = MapCodec.unit(new CrushRecipe());
-    public static final StreamCodec<RegistryFriendlyByteBuf, CrushRecipe> STREAM_CODEC =
-            StreamCodec.unit(new CrushRecipe());
+    // StreamCodec.unit only encodes an object equal to its instance, so both codecs must share one
+    private static final CrushRecipe INSTANCE = new CrushRecipe();
+
+    public static final MapCodec<CrushRecipe> CODEC = MapCodec.unit(INSTANCE);
+    public static final StreamCodec<RegistryFriendlyByteBuf, CrushRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
     /** Shared by the recipe, the machine tests and the JEI view; empty when the input is not crushable. */
     public static ItemStack craft(ItemStack input) {
