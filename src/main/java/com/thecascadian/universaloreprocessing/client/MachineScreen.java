@@ -87,7 +87,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
         graphics.fill(left, top, left + imageWidth, top + imageHeight, FRAME);
         graphics.fill(left + 1, top + 1, left + imageWidth - 1, top + imageHeight - 1, PANEL);
-        graphics.fillGradient(left + 1, top + 1, left + imageWidth - 1, top + 15, color, dim(color) + 0x00303030);
+        graphics.fill(left + 1, top + 1, left + imageWidth - 1, top + 15, color);
         graphics.fill(left + 1, top + 15, left + imageWidth - 1, top + 16, PANEL_DARK);
         graphics.fill(left + 4, top + 119, left + imageWidth - 4, top + imageHeight - 4, PANEL_DARK);
 
@@ -97,14 +97,12 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             drawSlot(graphics, left + slot.x, top + slot.y);
         }
 
-        drawCaptions(graphics, left, top);
-        drawEmblem(graphics, left + 62, top + 44);
-        drawProgress(graphics, left + 62, top + 74);
+        drawProgress(graphics, left + 54, top + 48);
         drawPower(graphics, left, top);
         if (menu.kind().usesWater())
             drawBar(graphics, left + 158, top + BAR_TOP, 8, BAR_HEIGHT,
                     menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE), WATER);
-        drawStatus(graphics, left + 76, top + 18);
+        drawStatus(graphics, left + 81, top + 64);
     }
 
     @Override
@@ -120,39 +118,6 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         graphics.fill(x, y, x + 1, y + 16, PANEL_DARK);
     }
 
-    private void drawCaptions(GuiGraphics graphics, int left, int top) {
-        MachineKind kind = menu.kind();
-        UiIcons.draw(graphics, UiIcons.INPUT, left + 35, top + 35, 1, TEXT_DIM);
-        UiIcons.draw(graphics, UiIcons.OUTPUT, left + 139, top + 35, 1, TEXT_DIM);
-        if (kind.hasReagentSlot())
-            UiIcons.draw(graphics, UiIcons.REAGENT, left + 35, top + 63, 1, TEXT_DIM);
-        if (kind.hasByproductSlot())
-            UiIcons.draw(graphics, UiIcons.BYPRODUCT, left + 139, top + 63, 1, TEXT_DIM);
-        if (menu.get(MachineBlockEntity.DATA_ENERGY_MODE) == 0)
-            UiIcons.draw(graphics, UiIcons.FUEL, left + 104, top + 91, 1, TEXT_DIM);
-    }
-
-    private void drawEmblem(GuiGraphics graphics, int x, int y) {
-        boolean working = status() == Status.WORKING;
-        int color = working ? tierColor() : dim(tierColor());
-        int accent = working ? ACCENT : dim(ACCENT);
-
-        graphics.fill(x, y, x + 52, y + 26, TRACK);
-        String[] rows = MachineGlyphs.get(menu.kind().id());
-        int ox = x + 14;
-        int oy = y + 1;
-        for (int gy = 0; gy < rows.length; gy++) {
-            for (int gx = 0; gx < rows[gy].length(); gx++) {
-                char cell = rows[gy].charAt(gx);
-                if (cell == '.')
-                    continue;
-                int px = ox + gx * 3;
-                int py = oy + gy * 3;
-                graphics.fill(px, py, px + 3, py + 3, cell == 'o' ? accent : color);
-            }
-        }
-    }
-
     private static int dim(int argb) {
         int r = ((argb >> 16) & 0xFF) * 2 / 5;
         int g = ((argb >> 8) & 0xFF) * 2 / 5;
@@ -162,9 +127,10 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     private void drawProgress(GuiGraphics graphics, int x, int y) {
         int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
-        int width = Math.min(52, menu.get(MachineBlockEntity.DATA_PROGRESS) * 52 / max);
-        graphics.fill(x, y, x + 52, y + 6, TRACK);
-        graphics.fillGradient(x, y, x + width, y + 6, 0xFFA6F0A6, 0xFF3FA83F);
+        int width = Math.min(68, menu.get(MachineBlockEntity.DATA_PROGRESS) * 68 / max);
+        graphics.fill(x - 1, y - 1, x + 69, y + 9, SLOT_EDGE);
+        graphics.fill(x, y, x + 68, y + 8, TRACK);
+        graphics.fill(x, y, x + width, y + 8, OK);
     }
 
     private void drawPower(GuiGraphics graphics, int left, int top) {
@@ -183,10 +149,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         int filled = Math.max(0, Math.min(height, height * permille / 1000));
         graphics.fill(x - 1, y - 1, x + width + 1, y + height + 1, SLOT_EDGE);
         graphics.fill(x, y, x + width, y + height, TRACK);
-        graphics.fillGradient(x, y + height - filled, x + width, y + height, color, dim(color));
-        graphics.fill(x, y + height - filled, x + 2, y + height, 0x44FFFFFF);
-        for (int tick = 1; tick < 4; tick++)
-            graphics.fill(x + width - 3, y + tick * height / 4, x + width, y + tick * height / 4 + 1, SLOT_EDGE);
+        graphics.fill(x, y + height - filled, x + width, y + height, color);
     }
 
     // -------------------------------------------------------------------------
@@ -237,15 +200,12 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         };
     }
 
-    /** A centered badge showing the machine state as a pictogram. */
+    /** A single icon shown only while the machine is stopped; its colour tells the reason. */
     private void drawStatus(GuiGraphics graphics, int x, int y) {
         Status status = status();
-        int color = UiIcons.colorOf(status);
-        boolean pulse = status == Status.WORKING && (System.currentTimeMillis() / 400) % 2 == 0;
-        graphics.fill(x, y, x + 24, y + 20, FRAME);
-        graphics.fillGradient(x + 1, y + 1, x + 23, y + 19, PANEL_LIGHT, PANEL_DARK);
-        graphics.fill(x + 1, y + 18, x + 23, y + 19, color);
-        UiIcons.draw(graphics, UiIcons.of(status), x + 5, y + 3, 2, pulse ? 0xFFFFFFFF : color);
+        if (status == Status.WORKING)
+            return;
+        UiIcons.draw(graphics, UiIcons.of(status), x, y, 2, UiIcons.colorOf(status));
     }
 
     // -------------------------------------------------------------------------
@@ -283,10 +243,10 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             } else if (menu.kind().usesWater() && over(mouseX, mouseY, 158, BAR_TOP, 8, BAR_HEIGHT)) {
                 id = 11;
                 hint = text("hint.water", menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE) / 10);
-            } else if (over(mouseX, mouseY, 76, 18, 24, 20)) {
+            } else if (over(mouseX, mouseY, 81, 64, 14, 14)) {
                 id = 12;
                 hint = statusText();
-            } else if (over(mouseX, mouseY, 62, 44, 52, 36)) {
+            } else if (over(mouseX, mouseY, 54, 48, 68, 8)) {
                 int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
                 int percent = menu.get(MachineBlockEntity.DATA_PROGRESS) * 100 / max;
                 id = 13;

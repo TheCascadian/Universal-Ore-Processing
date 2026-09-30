@@ -6,11 +6,6 @@ import net.minecraft.client.gui.GuiGraphics;
 /** Small pixel pictograms for the machine screens, so no text is needed to read a machine's state. */
 final class UiIcons {
 
-    static final String[] INPUT = {"..#..", "..#..", "#.#.#", ".###.", "..#.."};
-    static final String[] OUTPUT = {"..#..", "...#.", "#####", "...#.", "..#.."};
-    static final String[] REAGENT = {"..#..", "..#..", ".###.", "#####", ".###."};
-    static final String[] BYPRODUCT = {".....", "..#..", ".###.", "#.#.#", "#####"};
-    static final String[] FUEL = {"..#..", ".##..", ".###.", "#####", ".###."};
 
     private static final String[] PLAY = {"#......", "###....", "#####..", "#######", "#####..", "###....", "#......"};
     private static final String[] HOURGLASS = {"#######", ".#...#.", "..#.#..", "...#...", "..#.#..", ".#...#.", "#######"};
