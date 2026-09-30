@@ -50,7 +50,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static final String LANG = "gui." + UniversalOreProcessing.MODID + ".";
 
     private static final int BAR_TOP = 40;
-    private static final int BAR_HEIGHT = 58;
+    private static final int BAR_HEIGHT = 52;
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -91,18 +91,37 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         graphics.fill(left + 1, top + 15, left + imageWidth - 1, top + 16, PANEL_DARK);
         graphics.fill(left + 4, top + 119, left + imageWidth - 4, top + imageHeight - 4, PANEL_DARK);
 
+        graphics.fill(left + 22, top + 38, left + 154, top + 100, PANEL_DARK);
+        graphics.fill(left + 22, top + 99, left + 154, top + 100, PANEL_LIGHT);
+
         for (Slot slot : menu.slots) {
             if (!slot.isActive())
                 continue;
             drawSlot(graphics, left + slot.x, top + slot.y);
         }
 
-        drawProgress(graphics, left + 54, top + 48);
+        drawArrow(graphics, left + 56, top + 44);
         drawPower(graphics, left, top);
-        if (menu.kind().usesWater())
+        MachineKind kind = menu.kind();
+        boolean energy = menu.get(MachineBlockEntity.DATA_ENERGY_MODE) == 1;
+        UiIcons.draw(graphics, energy ? UiIcons.BOLT : UiIcons.FLAME, left + 10, top + BAR_TOP + BAR_HEIGHT + 4, 1,
+                energy ? ENERGY : FLAME);
+        if (kind.usesWater()) {
             drawBar(graphics, left + 158, top + BAR_TOP, 8, BAR_HEIGHT,
                     menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE), WATER);
+            UiIcons.draw(graphics, UiIcons.DROP, left + 158, top + BAR_TOP + BAR_HEIGHT + 4, 1, WATER);
+        }
+        if (kind.hasReagentSlot())
+            UiIcons.draw(graphics, UiIcons.FLASK, left + 48, top + 76, 1, TEXT_DIM);
+        if (kind.hasByproductSlot())
+            UiIcons.draw(graphics, UiIcons.RUBBLE, left + 121, top + 76, 1, TEXT_DIM);
+        if (!energy)
+            UiIcons.draw(graphics, UiIcons.FLAME, left + 100, top + 86, 1, TEXT_DIM);
         drawStatus(graphics, left + 81, top + 64);
+
+        // information marker at the right end of the title band
+        graphics.fill(left + imageWidth - 14, top + 3, left + imageWidth - 4, top + 13, 0x55000000);
+        graphics.drawString(font, "i", left + imageWidth - 10, top + 4, 0xFFFFFFFF, false);
     }
 
     @Override
@@ -125,12 +144,14 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return 0xFF000000 | (r << 16) | (g << 8) | b;
     }
 
-    private void drawProgress(GuiGraphics graphics, int x, int y) {
+    /** Progress arrow between the input and output; fills from the left as the work advances. */
+    private void drawArrow(GuiGraphics graphics, int x, int y) {
         int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
-        int width = Math.min(68, menu.get(MachineBlockEntity.DATA_PROGRESS) * 68 / max);
-        graphics.fill(x - 1, y - 1, x + 69, y + 9, SLOT_EDGE);
-        graphics.fill(x, y, x + 68, y + 8, TRACK);
-        graphics.fill(x, y, x + width, y + 8, OK);
+        int filled = Math.min(64, menu.get(MachineBlockEntity.DATA_PROGRESS) * 64 / max);
+        for (int col = 0; col < 64; col++) {
+            int half = col < 52 ? 3 : 8 - (col - 52) * 2 / 3;
+            graphics.fill(x + col, y + 8 - half, x + col + 1, y + 8 + half, col < filled ? OK : TRACK);
+        }
     }
 
     private void drawPower(GuiGraphics graphics, int left, int top) {
@@ -216,13 +237,24 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return mouseX >= leftPos + x && mouseX < leftPos + x + w && mouseY >= topPos + y && mouseY < topPos + y + h;
     }
 
+    private List<Component> extras;
     private int hintId = -1;
     private long hintSince;
 
     private void renderHints(GuiGraphics graphics, int mouseX, int mouseY) {
         Component hint = null;
+        extras = null;
         int id = -1;
-        if (hoveredSlot != null && hoveredSlot.isActive() && !hoveredSlot.hasItem()
+        if (over(mouseX, mouseY, 0, 0, imageWidth, 16)) {
+            id = 14;
+            extras = new ArrayList<>();
+            extras.add(title.copy().withStyle(net.minecraft.ChatFormatting.WHITE));
+            extras.add(Tooltips.machineBlurb(menu.kind()));
+            Tooltips.machineDetails(menu.kind(), extras);
+        }
+        if (id == 14) {
+            // the title band takes priority over everything below it
+        } else if (hoveredSlot != null && hoveredSlot.isActive() && !hoveredSlot.hasItem()
                 && hoveredSlot.index < MachineBlockEntity.SLOT_COUNT) {
             id = hoveredSlot.index;
             hint = switch (hoveredSlot.index) {
@@ -246,7 +278,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             } else if (over(mouseX, mouseY, 81, 64, 14, 14)) {
                 id = 12;
                 hint = statusText();
-            } else if (over(mouseX, mouseY, 54, 48, 68, 8)) {
+            } else if (over(mouseX, mouseY, 56, 44, 64, 16)) {
                 int max = Math.max(1, menu.get(MachineBlockEntity.DATA_MAX_PROGRESS));
                 int percent = menu.get(MachineBlockEntity.DATA_PROGRESS) * 100 / max;
                 id = 13;
@@ -258,10 +290,13 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             hintId = id;
             hintSince = System.currentTimeMillis();
         }
-        if (hint == null || !ClientConfig.guiHints(menu.kind()))
+        if ((hint == null && extras == null) || !ClientConfig.guiHints(menu.kind()))
             return;
         if (System.currentTimeMillis() - hintSince < ClientConfig.hintDelayMs())
             return;
-        graphics.renderTooltip(font, hint, mouseX, mouseY);
+        if (extras != null)
+            graphics.renderComponentTooltip(font, extras, mouseX, mouseY);
+        else
+            graphics.renderTooltip(font, hint, mouseX, mouseY);
     }
 }

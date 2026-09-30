@@ -6,6 +6,7 @@ import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.MaterialItem.Stage;
 import com.thecascadian.universaloreprocessing.material.MaterialTrait;
+import com.thecascadian.universaloreprocessing.process.Hazard;
 import com.thecascadian.universaloreprocessing.process.ProcessRule;
 import com.thecascadian.universaloreprocessing.process.ProcessRules;
 import com.thecascadian.universaloreprocessing.process.Reagent;
@@ -176,6 +177,12 @@ public final class Tooltips {
                     .withStyle(ChatFormatting.DARK_AQUA));
     }
 
+    /** The one line description of a machine. */
+    public static Component machineBlurb(MachineKind kind) {
+        return Component.translatable("tooltip." + UniversalOreProcessing.MODID + ".machine." + kind.id())
+                .withStyle(ChatFormatting.GRAY);
+    }
+
     public static void machine(MachineKind kind, List<Component> out) {
         if (!ClientConfig.machineItemTooltips(kind))
             return;
@@ -185,6 +192,11 @@ public final class Tooltips {
             hint(out);
             return;
         }
+        machineDetails(kind, out);
+    }
+
+    /** Full details of a machine, shown on item tooltips while Shift is held and on the screen title. */
+    public static void machineDetails(MachineKind kind, List<Component> out) {
         line(out, "tier", Component.literal(kind.tier() == 0 ? "-" : String.valueOf(kind.tier())));
         ProcessRule rule = ProcessRules.get(kind);
         if (rule == null)
@@ -213,5 +225,8 @@ public final class Tooltips {
                 traits.add(traitName(trait));
             line(out, "works_on", join(traits));
         }
+        if (rule.hazard() != Hazard.NONE)
+            line(out, "hazard", Component.translatable("tooltip." + UniversalOreProcessing.MODID + ".hazard."
+                    + rule.hazard().name().toLowerCase(java.util.Locale.ROOT)));
     }
 }
