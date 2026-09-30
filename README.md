@@ -23,6 +23,8 @@ Universal Ore Processing scans the common item tags at startup, works out which 
 *   **No per-material registration.** The same three items serve every material, and their names and colors are derived from the material they carry.
 *   **No datapack bloat.** Crushing and washing are each a single dynamic recipe evaluated at craft time, so no recipe JSON is generated per ore.
 *   **Reload safe.** Discovery reruns after every datapack reload and the result is swapped in atomically, so machines always see a consistent view.
+*   **A full refinery tech tree.** Twenty optional stations across eight tiers (sorting, pyrometallurgy, hydrometallurgy, electrometallurgy, vacuum refining, vapor and fractionation, crystal growth, advanced synthesis) turn the base chain into a deep automation puzzle.
+*   **Traits decide routing.** Each material has physical traits (dense, sulfide, magnetic, refractory and so on) that decide which stations accept it, so the tree behaves like real metallurgy and stays tunable from the config.
 *   **Fuel or power.** Machines burn fuel by default. A config switch moves them to Forge Energy.
 
 Requires NeoForge 1.21.1. MIT licensed.
@@ -45,6 +47,37 @@ Purified Ore or Dust ->  Ore Smelter  ->  Ingot, gem or dust of the material
 | Smelt | Ore Smelter | Purified Ore or Material Dust | Resolved output item | 1 per input |
 
 Every yield has its own multiplier in the config. The whole part of the result is guaranteed and the fractional part is the chance of one extra item, with a minimum of one.
+
+***
+
+## The Refinery Tree
+
+Every station accepts a stage item of a material that has a matching trait, optionally consumes a reagent, and returns a main output plus an optional byproduct. Byproducts (gangue, tailings, slag and similar) can be fed to the Ore Crusher, which reclaims them as dust with a configurable chance, and every product stage can finally be smelted in the Ore Smelter for a stage-dependent number of ingots.
+
+| Tier | Station | Takes | Reagent | Returns |
+|---|---|---|---|---|
+| I | Density Classifier | Crushed Ore (dense) | Dense Medium Powder, water | Heavy Concentrate, Light Gangue |
+| I | Froth Flotation Cell | Crushed Ore or Dust (sulfide) | Flotation Collector, water | Mineral Froth, Spent Tailings |
+| I | Magnetic Separator | Crushed Ore or Dust (magnetic) | none | Magnetic Fraction, Non-Magnetic Tailings |
+| II | Shaft Blast Furnace | Concentrate, Froth, Magnetic Fraction, Purified Ore | Smelting Flux (coke as fuel) | Crude Metal, Vitreous Slag |
+| II | Oxidation Converter | Crude Metal | Process Gas Canister | Converted Billet, Vitreous Slag |
+| II | Sealed Thermal Retort | Purified Ore or Concentrate (refractory) | Reducing Agent | Metal Sponge, Recovery Salt |
+| III | Pressure Leach Autoclave | Crushed Ore (leachable) | Leach Acid, water | Pregnant Leach Solution, Filter Cake |
+| III | Liquid Phase Extractor | Leach Solution (extractable) | Organic Solvent | Organic Extract, Stripped Raffinate |
+| III | Precipitation Array | Leach Solution or Extract (precipitable) | Precipitant | Solid Concentrate |
+| IV | Electrorefining Cell | Crude Metal, Billet or Sponge (electro) | Leach Acid, water | Cathode Plate, Anode Slime (precious) |
+| IV | Molten Salt Electrolyzer | Purified Ore, Precipitate or Salt (electrolysis) | Smelting Flux | Electrolytic Metal |
+| V | Vacuum Outgasser | Crude, Billet, Cathode or Electrolytic (structural) | Inert Gas Canister | Degassed Metal, Modified Inclusions |
+| V | Consumable Arc Remelter | Degassed, Cathode, Electrolytic or Billet (superalloy) | Inert Gas Canister | Arc-Remelted Ingot |
+| VI | Thermal Fractionation Column | Dust or Concentrate (hydrocarbon), water | none | Light Distillate, Heavy Distillate (both fuels) |
+| VI | Volatile Chemical Vaporizer | Dust or Purified Ore (carbonyl) | Process Gas Canister | Vapor-Refined Pellet, recycled gas |
+| VII | Vapor Deposition Furnace | Dust or Purified Ore (semiconductor) | Process Gas Canister | Polycrystal Cylinder, Leach Acid |
+| VII | Single Crystal Puller | Polycrystal or Pellet (crystal) | Seed Crystal | Monocrystal Boule, Crop Ends |
+| VIII | Graphitizer | Dust or Polycrystal (sinterable) | Inert Gas Canister | Sintered Monolith |
+| VIII | Gas Centrifuge Cascade | Purified Ore, Dust or Precipitate (isotopic) | Process Gas Canister | Enriched Fraction, Depleted Tails |
+| VIII | Radiochemical Hot Cell | Enriched or Depleted (radioactive) | Leach Acid | Fissile Stream, Vitrified Waste Glass |
+
+Each station has its own crafting recipe that requires a machine of the previous tier, and all reagents are craftable from vanilla items. Hazards are optional: with `hazards_enabled`, toxic, hot and radioactive stations harm players who stand close to them while they work.
 
 ***
 
@@ -119,6 +152,26 @@ For a standard install of the Minecraft Launcher:
 </details>
 
 <details>
+<summary>Refinery stations</summary>
+
+| Option | Default | Purpose |
+|---|---|---|
+| `strict_affinities` | `true` | Stations only accept materials with a matching trait. Set to `false` to let every station take every material |
+| `material_traits` | empty | Per-material trait overrides as `material=trait,trait`, for example `tin=dense,oxide,electro` |
+| `default_traits` | `dense`, `oxide`, `leachable`, `electro`, `precipitable` | Traits of materials that are not built in, so unfamiliar modded ores still enter the tree |
+| `scale_power_by_tier` | `true` | Higher tiers draw more FE or burn fuel faster |
+| `station_water_multiplier` | `1.0` | Multiplier on the water every station uses |
+| `waste_recycle_chance` | `0.25` | Chance that the crusher turns a byproduct into dust |
+| `slime_materials` | `gold`, `silver` | Precious metals anode slime can carry |
+| `consume_reagents` | `true` | If false, reagents are required but never used up |
+| `hazards_enabled` | `false` | Running stations harm nearby players |
+| `hazard_radius` | `4` | Radius of the hazards in blocks |
+| `creative_all_stages` | `false` | List every stage item for every material in the refinery creative tab |
+| `stations.<id>.enabled`, `ticks`, `yield_multiplier`, `byproduct_chance` | per station | Per-station switch, duration, output multiplier and byproduct chance |
+
+</details>
+
+<details>
 <summary>Power</summary>
 
 | Option | Default | Purpose |
@@ -140,7 +193,9 @@ All commands require permission level 2.
 | Command | Effect |
 |---|---|
 | `/uop dump` | Prints the discovered materials, the resolved output for each, and the dynamic recipe counts. The full report is written to `logs/uop_dump.txt` |
-| `/uop give <material> <stage>` | Gives one item of the chosen stage for testing. Stage is `crushed`, `purified` or `dust` |
+| `/uop give <material> <stage>` | Gives one item of the chosen stage for testing. Tab completion lists every stage |
+| `/uop reagent <name> [count]` | Gives refinery reagents for testing |
+| `/uop stations <material>` | Lists the material's traits and every station that accepts it |
 
 ***
 

@@ -30,8 +30,8 @@ import net.neoforged.neoforge.fluids.FluidUtil;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Block shared by the crusher, washer and smelter. Stores a facing and a lit
- * flag, opens the machine menu and, for the washer, accepts buckets and other
+ * Block shared by every machine. Stores a facing and a lit flag, opens the
+ * machine menu and, for stations with a water tank, accepts buckets and other
  * fluid containers.
  */
 public class MachineBlock extends BaseEntityBlock {
@@ -96,7 +96,7 @@ public class MachineBlock extends BaseEntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
-        if (kind != MachineKind.WASHER || stack.getCapability(Capabilities.FluidHandler.ITEM) == null)
+        if (!kind.usesWater() || stack.getCapability(Capabilities.FluidHandler.ITEM) == null)
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         if (!level.isClientSide)

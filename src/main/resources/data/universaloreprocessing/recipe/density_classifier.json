@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IHI",
+    "GWG",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "G": {
+      "item": "minecraft:gravel"
+    },
+    "W": {
+      "item": "universaloreprocessing:ore_washer"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:density_classifier",
+    "count": 1
+  }
+}

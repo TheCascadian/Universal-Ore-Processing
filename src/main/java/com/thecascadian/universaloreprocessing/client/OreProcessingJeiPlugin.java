@@ -1,9 +1,13 @@
 package com.thecascadian.universaloreprocessing.client;
 
 import com.thecascadian.universaloreprocessing.UniversalOreProcessing;
+import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.item.MaterialItem;
 import com.thecascadian.universaloreprocessing.material.MaterialDiscovery;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
+import com.thecascadian.universaloreprocessing.process.Plan;
+import com.thecascadian.universaloreprocessing.process.ProcessRule;
+import com.thecascadian.universaloreprocessing.process.ProcessRules;
 import com.thecascadian.universaloreprocessing.recipe.CrushRecipe;
 import com.thecascadian.universaloreprocessing.recipe.WashRecipe;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
@@ -25,26 +29,44 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Optional JEI integration. JEI discovers this class through its annotation
  * scan, so nothing in the mod references it and it is never loaded when JEI is
- * absent. It shows the dynamic crush, wash and smelt results for every material.
+ * absent. It shows every machine conversion for every material: the dynamic
+ * crush, wash and smelt results and each refining station with its reagent and
+ * byproduct.
  */
 @JeiPlugin
 public class OreProcessingJeiPlugin implements IModPlugin {
 
-    /** One displayed conversion: a single input stack and the stack the machine produces from it. */
-    public record MaterialRecipeView(ItemStack input, ItemStack output) {
+    /** One displayed conversion: the input, the reagent it needs, the main output and the byproduct. */
+    public record MaterialRecipeView(ItemStack input, ItemStack reagent, ItemStack output, ItemStack secondary) {
+
+        static MaterialRecipeView of(ItemStack input, ItemStack output) {
+            return new MaterialRecipeView(input, ItemStack.EMPTY, output, ItemStack.EMPTY);
+        }
     }
 
-    private static final RecipeType<MaterialRecipeView> CRUSHING = create("crushing");
-    private static final RecipeType<MaterialRecipeView> WASHING = create("washing");
-    private static final RecipeType<MaterialRecipeView> SMELTING = create("smelting");
+    private static final Map<MachineKind, RecipeType<MaterialRecipeView>> TYPES = new EnumMap<>(MachineKind.class);
 
-    private static RecipeType<MaterialRecipeView> create(String name) {
-        return RecipeType.create(UniversalOreProcessing.MODID, name, MaterialRecipeView.class);
+    static {
+        for (MachineKind kind : MachineKind.values()) {
+            TYPES.put(kind, RecipeType.create(UniversalOreProcessing.MODID, typeName(kind), MaterialRecipeView.class));
+        }
+    }
+
+    /** The three base machines keep the names their recipe types had before the refinery stations existed. */
+    private static String typeName(MachineKind kind) {
+        return switch (kind) {
+            case CRUSHER -> "crushing";
+            case WASHER -> "washing";
+            case SMELTER -> "smelting";
+            default -> kind.id();
+        };
     }
 
     @Override
@@ -55,10 +77,9 @@ public class OreProcessingJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         IGuiHelper gui = registration.getJeiHelpers().getGuiHelper();
-        registration.addRecipeCategories(
-                new Category(gui, CRUSHING, "ore_crusher", new ItemStack(RegistryHandler.ORE_CRUSHER_ITEM.get())),
-                new Category(gui, WASHING, "ore_washer", new ItemStack(RegistryHandler.ORE_WASHER_ITEM.get())),
-                new Category(gui, SMELTING, "ore_smelter", new ItemStack(RegistryHandler.ORE_SMELTER_ITEM.get())));
+        for (MachineKind kind : MachineKind.values()) {
+            registration.addRecipeCategories(new Category(gui, kind));
+        }
     }
 
     @Override
@@ -68,54 +89,82 @@ public class OreProcessingJeiPlugin implements IModPlugin {
         if (registry.isEmpty())
             registry = MaterialDiscovery.discover();
 
-        List<MaterialRecipeView> crushing = new ArrayList<>();
-        List<MaterialRecipeView> washing = new ArrayList<>();
-        List<MaterialRecipeView> smelting = new ArrayList<>();
+        Map<MachineKind, List<MaterialRecipeView>> views = new EnumMap<>(MachineKind.class);
+        for (MachineKind kind : MachineKind.values()) {
+            views.put(kind, new ArrayList<>());
+        }
 
         for (MaterialRegistry.Material material : registry.materials().values()) {
             for (Item item : material.oreItems()) {
-                addCrush(crushing, new ItemStack(item));
+                addCrush(views.get(MachineKind.CRUSHER), new ItemStack(item));
             }
             for (Item item : material.rawItems()) {
-                addCrush(crushing, new ItemStack(item));
+                addCrush(views.get(MachineKind.CRUSHER), new ItemStack(item));
             }
             ItemStack crushed = MaterialItem.create(MaterialItem.Stage.CRUSHED, material.id(), 1);
-            washing.add(new MaterialRecipeView(crushed, WashRecipe.craft(crushed)));
+            views.get(MachineKind.WASHER).add(MaterialRecipeView.of(crushed, WashRecipe.craft(crushed)));
 
-            ItemStack purified = MaterialItem.create(MaterialItem.Stage.PURIFIED, material.id(), 1);
-            smelting.add(new MaterialRecipeView(purified, new ItemStack(material.output())));
+            for (MaterialItem.Stage stage : MaterialItem.Stage.values()) {
+                ItemStack input = MaterialItem.create(stage, material.id(), 1);
+                if (stage.isSmeltable()) {
+                    views.get(MachineKind.SMELTER).add(MaterialRecipeView.of(input,
+                            new ItemStack(material.output(), stage.smeltCount())));
+                }
+                if (stage.isWaste()) {
+                    views.get(MachineKind.CRUSHER).add(MaterialRecipeView.of(input,
+                            MaterialItem.create(MaterialItem.Stage.DUST, material.id(), 1)));
+                }
+            }
+
+            for (Map.Entry<MachineKind, ProcessRule> entry : ProcessRules.all().entrySet()) {
+                for (MaterialItem.Stage stage : entry.getValue().inputs()) {
+                    Plan plan = ProcessRules.preview(entry.getKey(), stage, material.id());
+                    if (plan == null)
+                        continue;
+                    ItemStack reagent = plan.reagent() == null ? ItemStack.EMPTY
+                            : new ItemStack(plan.reagent().item(), plan.reagentCount());
+                    views.get(entry.getKey()).add(new MaterialRecipeView(
+                            MaterialItem.create(stage, material.id(), 1), reagent, plan.primary(), plan.secondary()));
+                }
+            }
         }
 
-        registration.addRecipes(CRUSHING, crushing);
-        registration.addRecipes(WASHING, washing);
-        registration.addRecipes(SMELTING, smelting);
+        for (MachineKind kind : MachineKind.values()) {
+            registration.addRecipes(TYPES.get(kind), views.get(kind));
+        }
     }
 
     private static void addCrush(List<MaterialRecipeView> views, ItemStack input) {
         ItemStack output = CrushRecipe.craft(input);
         if (!output.isEmpty())
-            views.add(new MaterialRecipeView(input, output));
+            views.add(MaterialRecipeView.of(input, output));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(new ItemStack(RegistryHandler.ORE_CRUSHER_ITEM.get()), CRUSHING);
-        registration.addRecipeCatalyst(new ItemStack(RegistryHandler.ORE_WASHER_ITEM.get()), WASHING);
-        registration.addRecipeCatalyst(new ItemStack(RegistryHandler.ORE_SMELTER_ITEM.get()), SMELTING);
+        for (MachineKind kind : MachineKind.values()) {
+            registration.addRecipeCatalyst(new ItemStack(RegistryHandler.MACHINE_ITEMS.get(kind).get()),
+                    TYPES.get(kind));
+        }
     }
 
     private static final class Category extends AbstractRecipeCategory<MaterialRecipeView> {
-        Category(IGuiHelper gui, RecipeType<MaterialRecipeView> type, String blockName, ItemStack icon) {
-            super(type,
-                    Component.translatable("block." + UniversalOreProcessing.MODID + "." + blockName),
-                    gui.createDrawableIngredient(VanillaTypes.ITEM_STACK, icon),
-                    90, 26);
+        Category(IGuiHelper gui, MachineKind kind) {
+            super(TYPES.get(kind),
+                    Component.translatable("block." + UniversalOreProcessing.MODID + "." + kind.id()),
+                    gui.createDrawableIngredient(VanillaTypes.ITEM_STACK,
+                            new ItemStack(RegistryHandler.MACHINE_ITEMS.get(kind).get())),
+                    112, 26);
         }
 
         @Override
         public void setRecipe(IRecipeLayoutBuilder builder, MaterialRecipeView recipe, IFocusGroup focuses) {
             builder.addSlot(RecipeIngredientRole.INPUT, 5, 5).addItemStack(recipe.input());
+            if (!recipe.reagent().isEmpty())
+                builder.addSlot(RecipeIngredientRole.INPUT, 27, 5).addItemStack(recipe.reagent());
             builder.addSlot(RecipeIngredientRole.OUTPUT, 67, 5).addItemStack(recipe.output());
+            if (!recipe.secondary().isEmpty())
+                builder.addSlot(RecipeIngredientRole.OUTPUT, 89, 5).addItemStack(recipe.secondary());
         }
     }
 }

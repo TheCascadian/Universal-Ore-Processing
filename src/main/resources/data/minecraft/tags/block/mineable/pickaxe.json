@@ -3,6 +3,26 @@
   "values": [
     "universaloreprocessing:ore_crusher",
     "universaloreprocessing:ore_washer",
-    "universaloreprocessing:ore_smelter"
+    "universaloreprocessing:ore_smelter",
+    "universaloreprocessing:density_classifier",
+    "universaloreprocessing:flotation_cell",
+    "universaloreprocessing:magnetic_separator",
+    "universaloreprocessing:blast_furnace",
+    "universaloreprocessing:oxidation_converter",
+    "universaloreprocessing:thermal_retort",
+    "universaloreprocessing:pressure_autoclave",
+    "universaloreprocessing:phase_extractor",
+    "universaloreprocessing:precipitation_array",
+    "universaloreprocessing:electrorefining_cell",
+    "universaloreprocessing:molten_salt_electrolyzer",
+    "universaloreprocessing:vacuum_outgasser",
+    "universaloreprocessing:arc_remelter",
+    "universaloreprocessing:fractionation_column",
+    "universaloreprocessing:volatile_vaporizer",
+    "universaloreprocessing:vapor_deposition_furnace",
+    "universaloreprocessing:crystal_puller",
+    "universaloreprocessing:graphitizer",
+    "universaloreprocessing:centrifuge_cascade",
+    "universaloreprocessing:hot_cell"
   ]
 }

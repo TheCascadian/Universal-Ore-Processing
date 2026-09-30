@@ -1,0 +1,13 @@
+{
+  "values": {
+    "universaloreprocessing:coke": {
+      "burn_time": 3200
+    },
+    "universaloreprocessing:light_distillate": {
+      "burn_time": 2400
+    },
+    "universaloreprocessing:heavy_distillate": {
+      "burn_time": 1600
+    }
+  }
+}

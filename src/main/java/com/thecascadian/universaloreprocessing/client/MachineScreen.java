@@ -1,7 +1,6 @@
 package com.thecascadian.universaloreprocessing.client;
 
 import com.thecascadian.universaloreprocessing.block.MachineBlockEntity;
-import com.thecascadian.universaloreprocessing.block.MachineKind;
 import com.thecascadian.universaloreprocessing.block.MachineMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,9 +9,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 
 /**
- * Screen for all three machines. Drawn with flat fills so the GUI needs no
- * texture: a progress arrow, a flame or FE bar for power, and a water bar on
- * the washer.
+ * Screen for every machine. Drawn with flat fills so the GUI needs no
+ * texture: a progress arrow, a flame or FE bar for power, a water bar on
+ * stations with a tank, and the reagent and byproduct slots where they apply.
  */
 public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
@@ -47,6 +46,8 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         graphics.fill(left + 1, top + 1, left + imageWidth - 1, top + imageHeight - 1, PANEL);
 
         for (Slot slot : menu.slots) {
+            if (!slot.isActive())
+                continue;
             int x = left + slot.x;
             int y = top + slot.y;
             graphics.fill(x - 1, y - 1, x + 17, y + 17, SHADOW);
@@ -55,7 +56,7 @@ public class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
         drawProgress(graphics, left + 79, top + 34);
         drawPower(graphics, left, top);
-        if (menu.kind() == MachineKind.WASHER)
+        if (menu.kind().usesWater())
             drawBar(graphics, left + 30, top + 17, 8, 52, menu.get(MachineBlockEntity.DATA_FLUID_PERMILLE), WATER);
     }
 

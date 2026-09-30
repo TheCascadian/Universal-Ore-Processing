@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NNN",
+    "CSF",
+    "III"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:nether_bricks"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "S": {
+      "item": "universaloreprocessing:ore_smelter"
+    },
+    "F": {
+      "item": "universaloreprocessing:flotation_cell"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:thermal_retort",
+    "count": 1
+  }
+}

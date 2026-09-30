@@ -19,4 +19,11 @@ public final class Yields {
             whole++;
         return Math.max(1, whole);
     }
+
+    /** True with the given probability; values at or above one always succeed, values at or below zero never do. */
+    public static boolean chance(double probability) {
+        if (probability >= 1.0D)
+            return true;
+        return probability > 0.0D && RANDOM.nextDouble() < probability;
+    }
 }

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IGI",
+    "CVC",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "V": {
+      "item": "universaloreprocessing:vacuum_outgasser"
+    }
+  },
+  "result": {
+    "id": "universaloreprocessing:fractionation_column",
+    "count": 1
+  }
+}
