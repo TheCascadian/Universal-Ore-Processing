@@ -111,8 +111,8 @@ public class GuideScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
         int left = left();
         int top = top();
 
@@ -130,6 +130,5 @@ public class GuideScreen extends Screen {
         Component counter = Component.literal((page + 1) + " / " + pages.size());
         graphics.drawString(font, counter, left + LIST_WIDTH + (WIDTH - LIST_WIDTH) / 2 - font.width(counter) / 2,
                 top + HEIGHT - 18, TEXT, false);
-        super.render(graphics, mouseX, mouseY, partialTick);
     }
 }
