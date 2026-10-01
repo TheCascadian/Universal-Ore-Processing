@@ -100,7 +100,7 @@ public class OreProcessingLanguageProvider extends LanguageProvider {
         guide("intro.4", "Hover over an item in this book to see its name. When something does not work, a short note appears above the hotbar saying why; the last chapter lists them all.");
 
         guide("strike.1", "Place a raw ore or an ore block on a Crushing Slab, then strike it with a Hammer.");
-        guide("strike.2", "It breaks after %s strikes. Cracks spread across the slab during the last strikes, so you can see how close it is. The clumps pop out on top of the slab.");
+        guide("strike.2", "It breaks after %s strikes. The floor of the slab wears from smooth stone toward cobblestone during the last strikes, so you can see how close it is. The clumps pop out on top of the slab.");
         guide("strike.3", "Set a Trip Hammer directly on top of a Crushing Slab. Each redstone pulse drops the head for one strike. A clock or a lever flicked by hand both work.");
         guide("strike.diagram.trip_hammer", "A lever beside the Trip Hammer, the Crushing Slab below it.");
         guide("strike.4", "A falling anvil also strikes a slab it lands on, one strike per fall.");

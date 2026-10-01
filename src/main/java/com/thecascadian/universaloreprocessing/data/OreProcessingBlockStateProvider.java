@@ -19,9 +19,9 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 /**
- * Blockstates and block models. Every texture is referenced at its standard
- * location under textures/block, and every overlay is its own model, so a
- * resource pack can replace any single piece.
+ * Blockstates and block models. Every block is layered from vanilla textures,
+ * so it follows whatever resource pack is active, and every overlay is its
+ * own model, so a pack can replace any single piece.
  */
 public class OreProcessingBlockStateProvider extends BlockStateProvider {
 
@@ -44,18 +44,25 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
         return ((int) facing.toYRot() + 180) % 360;
     }
 
+    private static ResourceLocation mc(String path) {
+        return ResourceLocation.withDefaultNamespace("block/" + path);
+    }
+
     // -------------------------------------------------------------------------
-    // Crushing Slab: a heavy basin, floor at 14, with a two pixel rim
+    // Crushing Slab: a stone brick basin, floor at 14, with a smooth stone rim.
+    // As strikes land the floor wears from smooth stone toward cobblestone.
     // -------------------------------------------------------------------------
+
+    private static final String[] WEAR = {"stone", "andesite", "cracked_stone_bricks", "cobblestone"};
 
     private void crushingSlab() {
         BlockModelBuilder base = models().getBuilder("block/crushing_slab")
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", modLoc("block/crushing_slab_side"))
-                .texture("side", modLoc("block/crushing_slab_side"))
-                .texture("rim", modLoc("block/crushing_slab_rim"))
-                .texture("floor", modLoc("block/crushing_slab_floor"))
-                .texture("bottom", modLoc("block/crushing_slab_bottom"));
+                .texture("particle", mc("stone_bricks"))
+                .texture("side", mc("stone_bricks"))
+                .texture("rim", mc("smooth_stone"))
+                .texture("floor", mc("smooth_stone"))
+                .texture("bottom", mc("smooth_stone"));
 
         base.element().from(0, 0, 0).to(16, 14, 16)
                 .face(Direction.DOWN).texture("#bottom").cullface(Direction.DOWN).end()
@@ -74,9 +81,8 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
         states.part().modelFile(base).addModel().end();
         for (int stage = 1; stage <= CrushingSlabBlock.CRACK_STAGES; stage++) {
             BlockModelBuilder crack = models().getBuilder("block/crushing_slab_crack_" + stage)
-                    .texture("particle", modLoc("block/crushing_slab_side"))
-                    .texture("crack", modLoc("block/crushing_slab_crack_" + stage))
-                    .renderType("cutout");
+                    .texture("particle", mc("stone_bricks"))
+                    .texture("crack", mc(WEAR[stage - 1]));
             crack.element().from(2, 14.01F, 2).to(14, 14.01F, 14)
                     .face(Direction.UP).texture("#crack").uvs(2, 2, 14, 14).end()
                     .end();
@@ -87,23 +93,25 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
     private static void rim(BlockModelBuilder model, float x1, float z1, float x2, float z2) {
         model.element().from(x1, 14, z1).to(x2, 16, z2)
                 .face(Direction.UP).texture("#rim").cullface(Direction.UP).end()
-                .face(Direction.NORTH).texture("#side").uvs(x1, 0, x2, 2).end()
-                .face(Direction.SOUTH).texture("#side").uvs(x1, 0, x2, 2).end()
-                .face(Direction.WEST).texture("#side").uvs(z1, 0, z2, 2).end()
-                .face(Direction.EAST).texture("#side").uvs(z1, 0, z2, 2).end()
+                .face(Direction.NORTH).texture("#rim").uvs(x1, 0, x2, 2).end()
+                .face(Direction.SOUTH).texture("#rim").uvs(x1, 0, x2, 2).end()
+                .face(Direction.WEST).texture("#rim").uvs(z1, 0, z2, 2).end()
+                .face(Direction.EAST).texture("#rim").uvs(z1, 0, z2, 2).end()
                 .end();
     }
 
     // -------------------------------------------------------------------------
-    // Sluice: a flat box running north between two rails, three riffles across the floor
+    // Sluice: an oak plank trough running north between two stripped oak rails,
+    // three dark oak riffles across the floor
     // -------------------------------------------------------------------------
 
     private void sluice() {
         BlockModelBuilder model = models().getBuilder("block/sluice")
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", modLoc("block/sluice_planks"))
-                .texture("planks", modLoc("block/sluice_planks"))
-                .texture("riffle", modLoc("block/sluice_riffle"));
+                .texture("particle", mc("oak_planks"))
+                .texture("planks", mc("oak_planks"))
+                .texture("rail", mc("stripped_oak_log"))
+                .texture("riffle", mc("stripped_dark_oak_log"));
 
         // the floor is level so rows join without a lip; SluiceBlock.RIFFLES mirrors the riffle positions
         step(model, 0, 3);
@@ -130,12 +138,14 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
 
     private static void rail(BlockModelBuilder model, float x1, float x2) {
         model.element().from(x1, 3, 0).to(x2, 8, 16)
-                .allFaces((direction, face) -> face.texture("#planks"))
+                .allFaces((direction, face) -> face.texture("#rail"))
                 .end();
     }
 
     // -------------------------------------------------------------------------
-    // Slurry cauldron: the vanilla cauldron model plus a tinted surface and crystals
+    // Slurry cauldron: the vanilla cauldron model plus a tinted water surface and crystals.
+    // Unstirred slurry churns (flowing water), stirred slurry lies still (still water),
+    // and crystals are tinted calcite growing up out of the surface.
     // -------------------------------------------------------------------------
 
     private void slurryCauldron() {
@@ -143,28 +153,45 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
         MultiPartBlockStateBuilder states = getMultipartBuilder(RegistryHandler.SLURRY_CAULDRON.get());
         states.part().modelFile(cauldron).addModel().end();
 
-        states.part().modelFile(surface("slurry_cauldron_murky", "block/slurry_murky", 0, 15.0F)).addModel()
+        states.part().modelFile(surface("slurry_cauldron_murky", mc("water_flow"), 0, 15.0F)).addModel()
                 .condition(SlurryCauldronBlock.PHASE, 0).end();
-        states.part().modelFile(surface("slurry_cauldron_still", "block/slurry_still", 0, 15.0F)).addModel()
+        states.part().modelFile(surface("slurry_cauldron_still", mc("water_still"), 0, 15.0F)).addModel()
                 .condition(SlurryCauldronBlock.PHASE, 1, 2, 3, 4).end();
         for (int stage = 1; stage <= 3; stage++) {
-            states.part().modelFile(surface("slurry_cauldron_crystals_" + stage, "block/slurry_crystals_" + stage, 1, 15.02F))
+            states.part().modelFile(crystals("slurry_cauldron_crystals_" + stage, stage, 15.0F))
                     .addModel().condition(SlurryCauldronBlock.PHASE, stage + 1).end();
         }
     }
 
-    private BlockModelBuilder surface(String name, String texture, int tint, float height) {
-        return surface(name, modLoc(texture), tint, height, "cutout");
-    }
-
-    private BlockModelBuilder surface(String name, ResourceLocation texture, int tint, float height, String renderType) {
+    private BlockModelBuilder surface(String name, ResourceLocation texture, int tint, float height) {
         BlockModelBuilder model = models().getBuilder("block/" + name)
-                .texture("particle", ResourceLocation.withDefaultNamespace("block/cauldron_side"))
+                .texture("particle", mc("cauldron_side"))
                 .texture("surface", texture)
-                .renderType(renderType);
+                .renderType("translucent");
         model.element().from(2, height, 2).to(14, height, 14)
                 .face(Direction.UP).texture("#surface").uvs(2, 2, 14, 14).tintindex(tint).end()
                 .end();
+        return model;
+    }
+
+    // x, z, height at the last stage, and lean; later stages add crystals and height
+    private static final float[][] CLUSTERS = {
+            {4, 5, 4, -22.5F}, {10, 3.5F, 3, 22.5F}, {7.5F, 10, 5, 0}, {11, 11, 3, -22.5F}, {3.5F, 11, 2, 22.5F}};
+
+    private BlockModelBuilder crystals(String name, int stage, float height) {
+        BlockModelBuilder model = models().getBuilder("block/" + name)
+                .texture("particle", mc("calcite"))
+                .texture("crystal", mc("calcite"));
+        int count = new int[] {2, 4, 5}[stage - 1];
+        for (int i = 0; i < count; i++) {
+            float[] c = CLUSTERS[i];
+            float tall = Math.max(1, c[2] - (3 - stage));
+            Direction.Axis axis = i % 2 == 0 ? Direction.Axis.X : Direction.Axis.Z;
+            model.element().from(c[0], height - 1, c[1]).to(c[0] + 1.5F, height + tall, c[1] + 1.5F)
+                    .rotation().origin(c[0] + 0.75F, height, c[1] + 0.75F).axis(axis).angle(c[3]).end()
+                    .allFaces((direction, face) -> face.texture("#crystal").tintindex(1))
+                    .end();
+        }
         return model;
     }
 
@@ -191,10 +218,10 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
     private BlockModelBuilder tripHammerModel(String name, float headBottom) {
         BlockModelBuilder model = models().getBuilder("block/" + name)
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", ResourceLocation.withDefaultNamespace("block/stripped_spruce_log"))
-                .texture("frame", ResourceLocation.withDefaultNamespace("block/stripped_spruce_log"))
-                .texture("head", modLoc("block/crushing_slab_side"))
-                .texture("shaft", modLoc("block/sluice_riffle"));
+                .texture("particle", mc("stripped_spruce_log"))
+                .texture("frame", mc("stripped_spruce_log"))
+                .texture("head", mc("stone"))
+                .texture("shaft", mc("stripped_oak_log"));
         box(model, 0, 0, 6, 2, 16, 10, "#frame");
         box(model, 14, 0, 6, 16, 16, 10, "#frame");
         box(model, 2, 14, 6, 14, 16, 10, "#frame");
@@ -210,27 +237,18 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
     private void quern() {
         BlockModelBuilder base = models().getBuilder("block/quern_base")
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", modLoc("block/crushing_slab_side"))
-                .texture("stone", modLoc("block/crushing_slab_side"))
-                .texture("spout", modLoc("block/crushing_slab_bottom"));
-        box(base, 1, 0, 1, 15, 8, 15, "#stone");
-        box(base, 7, 4, -1, 9, 6, 1, "#spout");
+                .texture("particle", mc("smooth_stone"));
+        quernBase(base);
 
         BlockModelBuilder top = models().getBuilder("block/quern_top")
-                .texture("particle", modLoc("block/crushing_slab_side"))
-                .texture("stone", modLoc("block/crushing_slab_rim"))
-                .texture("peg", ResourceLocation.withDefaultNamespace("block/stripped_oak_log"));
+                .texture("particle", mc("polished_andesite"));
         quernTop(top);
 
         // the whole quern in one model, for the item
         BlockModelBuilder whole = models().getBuilder("block/quern")
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", modLoc("block/crushing_slab_side"))
-                .texture("stone", modLoc("block/crushing_slab_side"))
-                .texture("spout", modLoc("block/crushing_slab_bottom"))
-                .texture("peg", ResourceLocation.withDefaultNamespace("block/stripped_oak_log"));
-        box(whole, 1, 0, 1, 15, 8, 15, "#stone");
-        box(whole, 7, 4, -1, 9, 6, 1, "#spout");
+                .texture("particle", mc("smooth_stone"));
+        quernBase(whole);
         quernTop(whole);
 
         MultiPartBlockStateBuilder states = getMultipartBuilder(RegistryHandler.QUERN.get());
@@ -244,8 +262,24 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
         }
     }
 
-    private static void quernTop(BlockModelBuilder model) {
-        box(model, 2, 8, 2, 14, 13, 14, "#stone");
+    // the bed stone: a smooth stone slab, its sides cut from the lower half of the slab side
+    private void quernBase(BlockModelBuilder model) {
+        model.texture("bed", mc("smooth_stone")).texture("bed_side", mc("smooth_stone_slab_side"));
+        model.element().from(1, 0, 1).to(15, 8, 15)
+                .allFaces((direction, face) -> {
+                    if (direction.getAxis().isVertical())
+                        face.texture("#bed");
+                    else
+                        face.texture("#bed_side").uvs(1, 8, 15, 16);
+                })
+                .end();
+        box(model, 7, 4, -1, 9, 6, 1, "#bed");
+    }
+
+    // the runner stone: polished andesite, turned by a stripped oak peg
+    private void quernTop(BlockModelBuilder model) {
+        model.texture("runner", mc("polished_andesite")).texture("peg", mc("stripped_oak_log"));
+        box(model, 2, 8, 2, 14, 13, 14, "#runner");
         box(model, 10, 13, 7, 12, 19, 9, "#peg");
     }
 
@@ -265,9 +299,9 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
     private BlockModelBuilder paddleModel(String name, float angle) {
         BlockModelBuilder model = models().getBuilder("block/" + name)
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", ResourceLocation.withDefaultNamespace("block/stripped_oak_log"))
-                .texture("bar", ResourceLocation.withDefaultNamespace("block/stripped_oak_log"))
-                .texture("paddle", modLoc("block/sluice_planks"));
+                .texture("particle", mc("stripped_oak_log"))
+                .texture("bar", mc("stripped_oak_log"))
+                .texture("paddle", mc("oak_planks"));
         box(model, 0, 0, 6, 16, 4, 10, "#bar");
         box(model, 7, 4, 7, 9, 8, 9, "#bar");
         model.element().from(7.5F, -10, 7.5F).to(8.5F, 4, 8.5F)
@@ -282,31 +316,33 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
     }
 
     // -------------------------------------------------------------------------
-    // Settling Tank: an open wooden vat; water, slurry and crystals show on its surface
+    // Settling Tank: an open barrel-stave vat with a stripped spruce rim;
+    // water, slurry and crystals show on its surface
     // -------------------------------------------------------------------------
 
     private void settlingTank() {
         BlockModelBuilder body = models().getBuilder("block/settling_tank")
                 .parent(new ModelFile.UncheckedModelFile("minecraft:block/block"))
-                .texture("particle", modLoc("block/sluice_planks"))
-                .texture("planks", modLoc("block/sluice_planks"))
-                .texture("rim", modLoc("block/sluice_riffle"));
+                .texture("particle", mc("barrel_side"))
+                .texture("planks", mc("barrel_side"))
+                .texture("floor", mc("barrel_bottom"))
+                .texture("rim", mc("stripped_spruce_log"));
         tankWall(body, 0, 0, 16, 2);
         tankWall(body, 0, 14, 16, 16);
         tankWall(body, 0, 2, 2, 14);
         tankWall(body, 14, 2, 16, 14);
-        box(body, 2, 0, 2, 14, 2, 14, "#planks");
+        box(body, 2, 0, 2, 14, 2, 14, "#floor");
 
         MultiPartBlockStateBuilder states = getMultipartBuilder(RegistryHandler.SETTLING_TANK.get());
         states.part().modelFile(body).addModel().end();
-        states.part().modelFile(surface("settling_tank_water", ResourceLocation.withDefaultNamespace("block/water_still"),
-                2, 14.0F, "translucent")).addModel().condition(SettlingTankBlock.STAGE, SettlingTankBlock.WATER).end();
-        states.part().modelFile(surface("settling_tank_murky", "block/slurry_murky", 0, 14.0F)).addModel()
+        states.part().modelFile(surface("settling_tank_water", mc("water_still"), 2, 14.0F)).addModel()
+                .condition(SettlingTankBlock.STAGE, SettlingTankBlock.WATER).end();
+        states.part().modelFile(surface("settling_tank_murky", mc("water_flow"), 0, 14.0F)).addModel()
                 .condition(SettlingTankBlock.STAGE, SettlingTankBlock.MURKY).end();
-        states.part().modelFile(surface("settling_tank_still", "block/slurry_still", 0, 14.0F)).addModel()
+        states.part().modelFile(surface("settling_tank_still", mc("water_still"), 0, 14.0F)).addModel()
                 .condition(SettlingTankBlock.STAGE, 3, 4, 5, 6).end();
         for (int stage = 1; stage <= 3; stage++) {
-            states.part().modelFile(surface("settling_tank_crystals_" + stage, "block/slurry_crystals_" + stage, 1, 14.02F))
+            states.part().modelFile(crystals("settling_tank_crystals_" + stage, stage, 14.0F))
                     .addModel().condition(SettlingTankBlock.STAGE, SettlingTankBlock.STIRRED + stage).end();
         }
     }
