@@ -1,10 +1,12 @@
 package com.thecascadian.universaloreprocessing.client;
 
 import com.thecascadian.universaloreprocessing.UniversalOreProcessing;
+import com.thecascadian.universaloreprocessing.block.SettlingTankBlockEntity;
 import com.thecascadian.universaloreprocessing.block.SlurryCauldronBlockEntity;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.network.Feedback;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -44,6 +46,16 @@ public class ClientSetup {
                 return -1;
             return MaterialTints.band(cauldron.material(), tintIndex == 1 ? MaterialTints.LIGHT : MaterialTints.MID);
         }, RegistryHandler.SLURRY_CAULDRON.get());
+        // the Settling Tank adds index 2 for its plain water, which follows the biome like vanilla water
+        event.register((state, level, pos, tintIndex) -> {
+            if (level == null || pos == null)
+                return -1;
+            if (tintIndex == 2)
+                return BiomeColors.getAverageWaterColor(level, pos);
+            if (!(level.getBlockEntity(pos) instanceof SettlingTankBlockEntity tank))
+                return -1;
+            return MaterialTints.band(tank.material(), tintIndex == 1 ? MaterialTints.LIGHT : MaterialTints.MID);
+        }, RegistryHandler.SETTLING_TANK.get());
     }
 
     @SubscribeEvent
