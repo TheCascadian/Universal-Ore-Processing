@@ -27,8 +27,15 @@ public final class ClientFeedback {
             case STIR -> 6;
             case SETTLE -> 5;
             case WASH -> 4;
+            case RIFFLE -> 3;
+            case SILT -> 1;
         };
-        float spread = verb == Feedback.Verb.BREAK ? 0.3F : 0.2F;
+        float spread = switch (verb) {
+            case BREAK -> 0.3F;
+            case RIFFLE -> 0.1F;
+            case SILT -> 0.05F;
+            default -> 0.2F;
+        };
         double rise = switch (verb) {
             case STRIKE, BREAK -> 0.12D;
             case GRIND -> 0.04D;
@@ -43,7 +50,7 @@ public final class ClientFeedback {
             int rgb = MaterialTints.band(payload.material(), band);
             DustParticleOptions options = new DustParticleOptions(new Vector3f(
                     ((rgb >> 16) & 0xFF) / 255.0F, ((rgb >> 8) & 0xFF) / 255.0F, (rgb & 0xFF) / 255.0F),
-                    verb == Feedback.Verb.SETTLE ? 0.6F : 0.9F);
+                    verb == Feedback.Verb.SETTLE || verb == Feedback.Verb.SILT ? 0.6F : 0.9F);
             level.addParticle(options,
                     pos.x + (random.nextFloat() - 0.5F) * spread * 2.0F,
                     pos.y + random.nextFloat() * 0.1F,

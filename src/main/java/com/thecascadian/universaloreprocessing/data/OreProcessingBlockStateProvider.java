@@ -82,7 +82,7 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
     }
 
     // -------------------------------------------------------------------------
-    // Sluice: three wooden steps falling north, a riffle on each tread
+    // Sluice: a flat box running north between two rails, three riffles across the floor
     // -------------------------------------------------------------------------
 
     private void sluice() {
@@ -92,12 +92,11 @@ public class OreProcessingBlockStateProvider extends BlockStateProvider {
                 .texture("planks", modLoc("block/sluice_planks"))
                 .texture("riffle", modLoc("block/sluice_riffle"));
 
+        // the floor is level so rows join without a lip; SluiceBlock.RIFFLES mirrors the riffle positions
         step(model, 0, 3);
-        step(model, 6, 4.5F);
-        step(model, 11, 6);
-        riffle(model, 1, 3);
-        riffle(model, 6, 4.5F);
-        riffle(model, 11, 6);
+        riffle(model, 2, 3);
+        riffle(model, 7, 3);
+        riffle(model, 12, 3);
         rail(model, 0, 1);
         rail(model, 15, 16);
 

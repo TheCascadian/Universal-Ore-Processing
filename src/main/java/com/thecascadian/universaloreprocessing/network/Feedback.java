@@ -13,6 +13,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -37,7 +38,10 @@ public final class Feedback {
         GRIND(SoundEvents.GRINDSTONE_USE, 0.55F, 1.25F),
         STIR(SoundEvents.BOAT_PADDLE_WATER, 0.6F, 1.35F),
         SETTLE(SoundEvents.AMETHYST_BLOCK_CHIME, 0.7F, 1.4F),
-        WASH(SoundEvents.GENERIC_SPLASH, 0.35F, 1.6F);
+        WASH(SoundEvents.GENERIC_SPLASH, 0.35F, 1.6F),
+        RIFFLE(SoundEvents.GRAVEL_HIT, 0.25F, 1.5F),
+        // a silent trail of silt behind an item crawling along a Sluice
+        SILT(null, 0.0F, 0.0F);
 
         private final SoundEvent sound;
         private final float volume;
@@ -104,12 +108,25 @@ public final class Feedback {
 
     /** Plays the verb's sound and sends tinted particles to every player tracking the position. */
     public static void play(ServerLevel level, Vec3 pos, Verb verb, String material) {
-        level.playSound(null, pos.x, pos.y, pos.z, verb.sound, SoundSource.BLOCKS, verb.volume,
-                verb.pitch);
+        if (verb.sound != null)
+            level.playSound(null, pos.x, pos.y, pos.z, verb.sound, SoundSource.BLOCKS, verb.volume, verb.pitch);
         if (material != null) {
             PacketDistributor.sendToPlayersTrackingChunk(level, new ChunkPos(BlockPos.containing(pos)),
                     new ParticlePayload(pos, material, verb.ordinal()));
         }
+    }
+
+    /**
+     * Client side only: plays the verb locally with no packet. Used by motion
+     * that the client simulates itself, such as items crossing a Sluice.
+     */
+    public static void playLocal(Level level, Vec3 pos, Verb verb, String material) {
+        if (!level.isClientSide())
+            return;
+        if (verb.sound != null)
+            level.playLocalSound(pos.x, pos.y, pos.z, verb.sound, SoundSource.BLOCKS, verb.volume, verb.pitch, false);
+        if (material != null)
+            particleHandler.accept(new ParticlePayload(pos, material, verb.ordinal()));
     }
 
     public static void syncRatios(ServerPlayer player) {

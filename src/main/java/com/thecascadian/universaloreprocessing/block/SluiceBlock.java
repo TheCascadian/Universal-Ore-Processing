@@ -21,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -39,9 +40,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import java.util.Optional;
 
 /**
- * A low wooden slope with riffles, laid in waterlogged rows. It has no block
- * entity: items in it are slowed and carried downstream, and the item reaching
- * the last Sluice of a row is washed once. Washing is the only random step of the
+ * A flat wooden box with riffles across its floor, laid in waterlogged rows.
+ * It has no block entity: ladder items sink to the floor, crawl downstream and
+ * tumble over each riffle, and the item clearing the last riffle of a row is
+ * washed once. The motion runs on both sides so the client animates it
+ * smoothly; only the wash runs on the server. Washing is the only random step of the
  * ladder; longer rows raise each byproduct chance up to the configured cap.
  */
 public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock {
@@ -49,27 +52,34 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
     public static final MapCodec<SluiceBlock> CODEC = simpleCodec(SluiceBlock::new);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
-    // facing points downstream; the shape steps down toward it
+    // facing points downstream; the floor is level and the rails run along the row
     private static final VoxelShape[] SHAPES = new VoxelShape[4];
 
     static {
-        for (Direction direction : Direction.Plane.HORIZONTAL) {
-            VoxelShape high = switch (direction) {
-                case NORTH -> Block.box(0, 0, 8, 16, 6, 16);
-                case SOUTH -> Block.box(0, 0, 0, 16, 6, 8);
-                case WEST -> Block.box(8, 0, 0, 16, 6, 16);
-                default -> Block.box(0, 0, 0, 8, 6, 16);
-            };
-            SHAPES[direction.get2DDataValue()] = Shapes.or(Block.box(0, 0, 0, 16, 3, 16), high);
-        }
+        VoxelShape floor = Block.box(0, 0, 0, 16, 3, 16);
+        VoxelShape alongZ = Shapes.or(floor, Block.box(0, 3, 0, 1, 8, 16), Block.box(15, 3, 0, 16, 8, 16));
+        VoxelShape alongX = Shapes.or(floor, Block.box(0, 3, 0, 16, 8, 1), Block.box(0, 3, 15, 16, 8, 16));
+        for (Direction direction : Direction.Plane.HORIZONTAL)
+            SHAPES[direction.get2DDataValue()] = direction.getAxis() == Direction.Axis.Z ? alongZ : alongX;
     }
 
-    // items over a sluice lose this much horizontal speed per tick, so they settle against the riffles
+    // upstream face of each riffle, as a fraction of the block measured downstream; mirrors the block model
+    private static final double[] RIFFLES = {3.0D / 16.0D, 8.0D / 16.0D, 13.0D / 16.0D};
+    // half the width of a dropped item; its leading edge meets a riffle this far ahead of its centre
+    private static final double LEAD = 0.125D;
+
+    // items over a sluice lose this much speed along the row per tick
     private static final double DRAG = 0.55D;
-    // still water has no current, so the slope itself carries items downstream; settles near 0.045 blocks per tick
+    // still water has no current, so the box itself carries items downstream; settles near 0.045 blocks per tick
     private static final double CARRY = 0.02D;
     // water spilling off the sides of a row pushes items outward; this pulls them back to the centre line
     private static final double CENTRE = 0.15D;
+    // ore is heavy: it sinks onto the floor rather than floating, and a riffle kicks it up about two pixels
+    private static final double SINK = 0.04D;
+    private static final double HOP = 0.075D;
+    private static final double FALL = 0.035D;
+    // ticks between puffs of silt behind an item crawling along the floor
+    private static final int SILT_INTERVAL = 5;
 
     public SluiceBlock(Properties properties) {
         super(properties);
@@ -113,11 +123,11 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
     }
 
     /**
-     * Called from the item entity tick hook for ladder items that are in water.
-     * Looks up the sluice under the item, applies drag and the downstream carry,
-     * and washes the stack at the end of a row.
+     * Called on both sides from the item entity tick hook for ladder items that
+     * are in water. Moves the item along the sluice under it, tumbles it over
+     * the riffles, and on the server washes it at the end of a row.
      */
-    public static void handleItem(ServerLevel level, ItemEntity entity) {
+    public static void handleItem(Level level, ItemEntity entity) {
         BlockPos pos = entity.blockPosition();
         BlockState state = level.getBlockState(pos);
         if (!state.is(RegistryHandler.SLUICE.get())) {
@@ -128,17 +138,53 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
         }
 
         Direction downstream = state.getValue(FACING);
-        Vec3 motion = entity.getDeltaMovement();
-        // the sluice owns horizontal motion: along the row it slows and carries, across it it centres
-        if (downstream.getAxis() == Direction.Axis.Z) {
-            double across = (pos.getX() + 0.5D - entity.getX()) * CENTRE;
-            entity.setDeltaMovement(across, motion.y, motion.z * DRAG + downstream.getStepZ() * CARRY);
-        } else {
-            double across = (pos.getZ() + 0.5D - entity.getZ()) * CENTRE;
-            entity.setDeltaMovement(motion.x * DRAG + downstream.getStepX() * CARRY, motion.y, across);
+        String material = FormItem.materialId(entity.getItem());
+
+        // leading edge of the item, now and last tick, as a fraction of this block measured downstream
+        double start = along(downstream, pos.getX() + 0.5D, pos.getZ() + 0.5D) - 0.5D;
+        double front = along(downstream, entity.getX(), entity.getZ()) - start + LEAD;
+        double previous = along(downstream, entity.xo, entity.zo) - start + LEAD;
+        boolean tumble = false;
+        for (double riffle : RIFFLES) {
+            if (previous < riffle && front >= riffle)
+                tumble = true;
         }
 
-        if (level.getBlockState(pos.relative(downstream)).is(RegistryHandler.SLUICE.get()))
+        Vec3 motion = entity.getDeltaMovement();
+        double vertical;
+        if (tumble)
+            vertical = HOP;
+        else if (entity.onGround())
+            vertical = -SINK;
+        else
+            vertical = Math.max(motion.y - FALL, -SINK * 2.0D);
+
+        // the sluice owns the motion: along the row it slows and carries, across it it centres
+        double alongSpeed = (motion.x * downstream.getStepX() + motion.z * downstream.getStepZ()) * DRAG + CARRY;
+        if (downstream.getAxis() == Direction.Axis.Z) {
+            double across = (pos.getX() + 0.5D - entity.getX()) * CENTRE;
+            entity.setDeltaMovement(across, vertical, alongSpeed * downstream.getStepZ());
+        } else {
+            double across = (pos.getZ() + 0.5D - entity.getZ()) * CENTRE;
+            entity.setDeltaMovement(alongSpeed * downstream.getStepX(), vertical, across);
+        }
+
+        if (level.isClientSide()) {
+            Vec3 at = entity.position();
+            if (tumble)
+                Feedback.playLocal(level, at.add(0.0D, 0.1D, 0.0D), Feedback.Verb.RIFFLE, material);
+            else if (entity.onGround() && entity.tickCount % SILT_INTERVAL == 0)
+                Feedback.playLocal(level,
+                        at.add(-downstream.getStepX() * LEAD, 0.0D, -downstream.getStepZ() * LEAD),
+                        Feedback.Verb.SILT, material);
+            return;
+        }
+
+        // the wash happens as the item clears the last riffle of the last Sluice in the row
+        BlockState next = level.getBlockState(pos.relative(downstream));
+        if (next.is(RegistryHandler.SLUICE.get()) && next.getValue(FACING) == downstream)
+            return;
+        if (front < RIFFLES[RIFFLES.length - 1])
             return;
 
         ItemStack stack = entity.getItem();
@@ -147,10 +193,14 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
             return;
 
         int row = rowLength(level, pos, downstream);
-        wash(level, entity, stack, row);
+        wash((ServerLevel) level, entity, stack, row);
     }
 
-    private static int rowLength(ServerLevel level, BlockPos end, Direction downstream) {
+    private static double along(Direction downstream, double x, double z) {
+        return x * downstream.getStepX() + z * downstream.getStepZ();
+    }
+
+    private static int rowLength(Level level, BlockPos end, Direction downstream) {
         int max = OreProcessingConfig.get(OreProcessingConfig.COMMON.sluiceMaxRow);
         int length = 1;
         BlockPos cursor = end.relative(downstream.getOpposite());

@@ -95,8 +95,8 @@ public final class LadderEvents {
             return;
         if (!(item.getItem().getItem() instanceof FormItem) || !item.isInWater())
             return;
-        if (item.level() instanceof ServerLevel serverLevel)
-            SluiceBlock.handleItem(serverLevel, item);
+        // both sides: the client simulates the motion itself so the tumble animates smoothly
+        SluiceBlock.handleItem(item.level(), item);
     }
 
     // -------------------------------------------------------------------------
