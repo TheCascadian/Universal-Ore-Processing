@@ -132,22 +132,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "east": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "north": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "south": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "up": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "west": {
-          "texture": "#planks"
+          "texture": "#rail"
         }
       },
       "from": [
@@ -164,22 +164,22 @@
     {
       "faces": {
         "down": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "east": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "north": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "south": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "up": {
-          "texture": "#planks"
+          "texture": "#rail"
         },
         "west": {
-          "texture": "#planks"
+          "texture": "#rail"
         }
       },
       "from": [
@@ -195,8 +195,9 @@
     }
   ],
   "textures": {
-    "particle": "universaloreprocessing:block/sluice_planks",
-    "planks": "universaloreprocessing:block/sluice_planks",
-    "riffle": "universaloreprocessing:block/sluice_riffle"
+    "particle": "minecraft:block/oak_planks",
+    "planks": "minecraft:block/oak_planks",
+    "rail": "minecraft:block/stripped_oak_log",
+    "riffle": "minecraft:block/stripped_dark_oak_log"
   }
 }

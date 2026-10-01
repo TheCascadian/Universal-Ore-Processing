@@ -1,0 +1,74 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_base"
+      },
+      "when": {
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_base",
+        "y": 90
+      },
+      "when": {
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_base",
+        "y": 180
+      },
+      "when": {
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_base",
+        "y": 270
+      },
+      "when": {
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_top"
+      },
+      "when": {
+        "turn": "0"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_top",
+        "y": 90
+      },
+      "when": {
+        "turn": "1"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_top",
+        "y": 180
+      },
+      "when": {
+        "turn": "2"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/quern_top",
+        "y": 270
+      },
+      "when": {
+        "turn": "3"
+      }
+    }
+  ]
+}

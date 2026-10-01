@@ -15,12 +15,12 @@
       },
       "from": [
         2,
-        15,
+        14,
         2
       ],
       "to": [
         14,
-        15,
+        14,
         14
       ]
     }
@@ -28,6 +28,6 @@
   "render_type": "minecraft:translucent",
   "textures": {
     "particle": "minecraft:block/cauldron_side",
-    "surface": "minecraft:block/water_flow"
+    "surface": "minecraft:block/water_still"
   }
 }

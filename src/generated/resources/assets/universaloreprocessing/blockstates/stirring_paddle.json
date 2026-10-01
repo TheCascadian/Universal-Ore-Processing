@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,powered=false,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a",
+      "y": 90
+    },
+    "facing=east,powered=false,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b",
+      "y": 90
+    },
+    "facing=east,powered=true,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a",
+      "y": 90
+    },
+    "facing=east,powered=true,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b",
+      "y": 90
+    },
+    "facing=north,powered=false,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a"
+    },
+    "facing=north,powered=false,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b"
+    },
+    "facing=north,powered=true,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a"
+    },
+    "facing=north,powered=true,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b"
+    },
+    "facing=south,powered=false,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a",
+      "y": 180
+    },
+    "facing=south,powered=false,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b",
+      "y": 180
+    },
+    "facing=south,powered=true,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a",
+      "y": 180
+    },
+    "facing=south,powered=true,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b",
+      "y": 180
+    },
+    "facing=west,powered=false,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a",
+      "y": 270
+    },
+    "facing=west,powered=false,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b",
+      "y": 270
+    },
+    "facing=west,powered=true,swing=false": {
+      "model": "universaloreprocessing:block/stirring_paddle_a",
+      "y": 270
+    },
+    "facing=west,powered=true,swing=true": {
+      "model": "universaloreprocessing:block/stirring_paddle_b",
+      "y": 270
+    }
+  }
+}

@@ -1,5 +1,8 @@
 {
   "values": [
-    "universaloreprocessing:sluice"
+    "universaloreprocessing:sluice",
+    "universaloreprocessing:trip_hammer",
+    "universaloreprocessing:stirring_paddle",
+    "universaloreprocessing:settling_tank"
   ]
 }

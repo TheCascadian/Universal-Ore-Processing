@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "down=false,facing=east,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_up",
+      "y": 90
+    },
+    "down=false,facing=east,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_up",
+      "y": 90
+    },
+    "down=false,facing=north,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_up"
+    },
+    "down=false,facing=north,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_up"
+    },
+    "down=false,facing=south,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_up",
+      "y": 180
+    },
+    "down=false,facing=south,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_up",
+      "y": 180
+    },
+    "down=false,facing=west,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_up",
+      "y": 270
+    },
+    "down=false,facing=west,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_up",
+      "y": 270
+    },
+    "down=true,facing=east,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_down",
+      "y": 90
+    },
+    "down=true,facing=east,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_down",
+      "y": 90
+    },
+    "down=true,facing=north,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_down"
+    },
+    "down=true,facing=north,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_down"
+    },
+    "down=true,facing=south,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_down",
+      "y": 180
+    },
+    "down=true,facing=south,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_down",
+      "y": 180
+    },
+    "down=true,facing=west,powered=false": {
+      "model": "universaloreprocessing:block/trip_hammer_down",
+      "y": 270
+    },
+    "down=true,facing=west,powered=true": {
+      "model": "universaloreprocessing:block/trip_hammer_down",
+      "y": 270
+    }
+  }
+}

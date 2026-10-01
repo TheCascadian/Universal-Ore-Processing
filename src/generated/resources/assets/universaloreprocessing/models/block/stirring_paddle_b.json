@@ -1,0 +1,156 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bar"
+        },
+        "east": {
+          "texture": "#bar"
+        },
+        "north": {
+          "texture": "#bar"
+        },
+        "south": {
+          "texture": "#bar"
+        },
+        "up": {
+          "texture": "#bar"
+        },
+        "west": {
+          "texture": "#bar"
+        }
+      },
+      "from": [
+        0,
+        0,
+        6
+      ],
+      "to": [
+        16,
+        4,
+        10
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bar"
+        },
+        "east": {
+          "texture": "#bar"
+        },
+        "north": {
+          "texture": "#bar"
+        },
+        "south": {
+          "texture": "#bar"
+        },
+        "up": {
+          "texture": "#bar"
+        },
+        "west": {
+          "texture": "#bar"
+        }
+      },
+      "from": [
+        7,
+        4,
+        7
+      ],
+      "to": [
+        9,
+        8,
+        9
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#paddle"
+        },
+        "east": {
+          "texture": "#paddle"
+        },
+        "north": {
+          "texture": "#paddle"
+        },
+        "south": {
+          "texture": "#paddle"
+        },
+        "up": {
+          "texture": "#paddle"
+        },
+        "west": {
+          "texture": "#paddle"
+        }
+      },
+      "from": [
+        7.5,
+        -10,
+        7.5
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "z",
+        "origin": [
+          8,
+          4,
+          8
+        ]
+      },
+      "to": [
+        8.5,
+        4,
+        8.5
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#paddle"
+        },
+        "east": {
+          "texture": "#paddle"
+        },
+        "north": {
+          "texture": "#paddle"
+        },
+        "south": {
+          "texture": "#paddle"
+        },
+        "up": {
+          "texture": "#paddle"
+        },
+        "west": {
+          "texture": "#paddle"
+        }
+      },
+      "from": [
+        5,
+        -12,
+        7.5
+      ],
+      "rotation": {
+        "angle": 22.5,
+        "axis": "z",
+        "origin": [
+          8,
+          4,
+          8
+        ]
+      },
+      "to": [
+        11,
+        -5,
+        8.5
+      ]
+    }
+  ],
+  "textures": {
+    "bar": "minecraft:block/stripped_oak_log",
+    "paddle": "minecraft:block/oak_planks",
+    "particle": "minecraft:block/stripped_oak_log"
+  }
+}

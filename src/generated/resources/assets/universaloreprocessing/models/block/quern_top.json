@@ -1,0 +1,73 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#runner"
+        },
+        "east": {
+          "texture": "#runner"
+        },
+        "north": {
+          "texture": "#runner"
+        },
+        "south": {
+          "texture": "#runner"
+        },
+        "up": {
+          "texture": "#runner"
+        },
+        "west": {
+          "texture": "#runner"
+        }
+      },
+      "from": [
+        2,
+        8,
+        2
+      ],
+      "to": [
+        14,
+        13,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#peg"
+        },
+        "east": {
+          "texture": "#peg"
+        },
+        "north": {
+          "texture": "#peg"
+        },
+        "south": {
+          "texture": "#peg"
+        },
+        "up": {
+          "texture": "#peg"
+        },
+        "west": {
+          "texture": "#peg"
+        }
+      },
+      "from": [
+        10,
+        13,
+        7
+      ],
+      "to": [
+        12,
+        19,
+        9
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "minecraft:block/polished_andesite",
+    "peg": "minecraft:block/stripped_oak_log",
+    "runner": "minecraft:block/polished_andesite"
+  }
+}

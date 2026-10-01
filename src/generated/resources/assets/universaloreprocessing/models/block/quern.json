@@ -1,0 +1,164 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#bed"
+        },
+        "east": {
+          "texture": "#bed_side",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#bed_side",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#bed_side",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#bed"
+        },
+        "west": {
+          "texture": "#bed_side",
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ]
+        }
+      },
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        8,
+        15
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#bed"
+        },
+        "east": {
+          "texture": "#bed"
+        },
+        "north": {
+          "texture": "#bed"
+        },
+        "south": {
+          "texture": "#bed"
+        },
+        "up": {
+          "texture": "#bed"
+        },
+        "west": {
+          "texture": "#bed"
+        }
+      },
+      "from": [
+        7,
+        4,
+        -1
+      ],
+      "to": [
+        9,
+        6,
+        1
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#runner"
+        },
+        "east": {
+          "texture": "#runner"
+        },
+        "north": {
+          "texture": "#runner"
+        },
+        "south": {
+          "texture": "#runner"
+        },
+        "up": {
+          "texture": "#runner"
+        },
+        "west": {
+          "texture": "#runner"
+        }
+      },
+      "from": [
+        2,
+        8,
+        2
+      ],
+      "to": [
+        14,
+        13,
+        14
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#peg"
+        },
+        "east": {
+          "texture": "#peg"
+        },
+        "north": {
+          "texture": "#peg"
+        },
+        "south": {
+          "texture": "#peg"
+        },
+        "up": {
+          "texture": "#peg"
+        },
+        "west": {
+          "texture": "#peg"
+        }
+      },
+      "from": [
+        10,
+        13,
+        7
+      ],
+      "to": [
+        12,
+        19,
+        9
+      ]
+    }
+  ],
+  "textures": {
+    "bed": "minecraft:block/smooth_stone",
+    "bed_side": "minecraft:block/smooth_stone_slab_side",
+    "particle": "minecraft:block/smooth_stone",
+    "peg": "minecraft:block/stripped_oak_log",
+    "runner": "minecraft:block/polished_andesite"
+  }
+}

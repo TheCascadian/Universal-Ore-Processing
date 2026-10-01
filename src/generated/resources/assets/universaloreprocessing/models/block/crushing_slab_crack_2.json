@@ -3,7 +3,13 @@
     {
       "faces": {
         "up": {
-          "texture": "#crack"
+          "texture": "#crack",
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
         }
       },
       "from": [
@@ -18,9 +24,8 @@
       ]
     }
   ],
-  "render_type": "minecraft:cutout",
   "textures": {
-    "crack": "universaloreprocessing:block/crushing_slab_crack_2",
-    "particle": "universaloreprocessing:block/crushing_slab_side"
+    "crack": "minecraft:block/andesite",
+    "particle": "minecraft:block/stone_bricks"
   }
 }
