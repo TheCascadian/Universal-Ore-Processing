@@ -68,6 +68,8 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
     private static final double DRAG = 0.55D;
     // still water has no current, so the slope itself carries items downstream; settles near 0.045 blocks per tick
     private static final double CARRY = 0.02D;
+    // water spilling off the sides of a row pushes items outward; this pulls them back to the centre line
+    private static final double CENTRE = 0.15D;
 
     public SluiceBlock(Properties properties) {
         super(properties);
@@ -127,10 +129,14 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
 
         Direction downstream = state.getValue(FACING);
         Vec3 motion = entity.getDeltaMovement();
-        entity.setDeltaMovement(
-                motion.x * DRAG + downstream.getStepX() * CARRY,
-                motion.y,
-                motion.z * DRAG + downstream.getStepZ() * CARRY);
+        // the sluice owns horizontal motion: along the row it slows and carries, across it it centres
+        if (downstream.getAxis() == Direction.Axis.Z) {
+            double across = (pos.getX() + 0.5D - entity.getX()) * CENTRE;
+            entity.setDeltaMovement(across, motion.y, motion.z * DRAG + downstream.getStepZ() * CARRY);
+        } else {
+            double across = (pos.getZ() + 0.5D - entity.getZ()) * CENTRE;
+            entity.setDeltaMovement(motion.x * DRAG + downstream.getStepX() * CARRY, motion.y, across);
+        }
 
         if (level.getBlockState(pos.relative(downstream)).is(RegistryHandler.SLUICE.get()))
             return;
