@@ -21,10 +21,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -33,14 +39,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import java.util.Optional;
 
 /**
- * A low wooden slope with riffles, laid in rows under flowing water. It has no
- * block entity: items crossing it are slowed, and the item reaching the last
- * Sluice of a row is washed once. Washing is the only random step of the
+ * A low wooden slope with riffles, laid in waterlogged rows. It has no block
+ * entity: items in it are slowed and carried downstream, and the item reaching
+ * the last Sluice of a row is washed once. Washing is the only random step of the
  * ladder; longer rows raise each byproduct chance up to the configured cap.
  */
-public class SluiceBlock extends HorizontalDirectionalBlock {
+public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock {
 
     public static final MapCodec<SluiceBlock> CODEC = simpleCodec(SluiceBlock::new);
+    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
     // facing points downstream; the shape steps down toward it
     private static final VoxelShape[] SHAPES = new VoxelShape[4];
@@ -59,10 +66,12 @@ public class SluiceBlock extends HorizontalDirectionalBlock {
 
     // items over a sluice lose this much horizontal speed per tick, so they settle against the riffles
     private static final double DRAG = 0.55D;
+    // still water has no current, so the slope itself carries items downstream; settles near 0.045 blocks per tick
+    private static final double CARRY = 0.02D;
 
     public SluiceBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
     }
 
     @Override
@@ -72,12 +81,28 @@ public class SluiceBlock extends HorizontalDirectionalBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, WATERLOGGED);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
+        boolean water = context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER;
+        return defaultBlockState()
+                .setValue(FACING, context.getHorizontalDirection())
+                .setValue(WATERLOGGED, water);
+    }
+
+    @Override
+    protected FluidState getFluidState(BlockState state) {
+        return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState,
+                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+        if (state.getValue(WATERLOGGED))
+            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
@@ -87,8 +112,8 @@ public class SluiceBlock extends HorizontalDirectionalBlock {
 
     /**
      * Called from the item entity tick hook for ladder items that are in water.
-     * Looks up the sluice under the item, applies drag, and washes the stack at
-     * the end of a row.
+     * Looks up the sluice under the item, applies drag and the downstream carry,
+     * and washes the stack at the end of a row.
      */
     public static void handleItem(ServerLevel level, ItemEntity entity) {
         BlockPos pos = entity.blockPosition();
@@ -100,10 +125,13 @@ public class SluiceBlock extends HorizontalDirectionalBlock {
                 return;
         }
 
-        Vec3 motion = entity.getDeltaMovement();
-        entity.setDeltaMovement(motion.x * DRAG, motion.y, motion.z * DRAG);
-
         Direction downstream = state.getValue(FACING);
+        Vec3 motion = entity.getDeltaMovement();
+        entity.setDeltaMovement(
+                motion.x * DRAG + downstream.getStepX() * CARRY,
+                motion.y,
+                motion.z * DRAG + downstream.getStepZ() * CARRY);
+
         if (level.getBlockState(pos.relative(downstream)).is(RegistryHandler.SLUICE.get()))
             return;
 
