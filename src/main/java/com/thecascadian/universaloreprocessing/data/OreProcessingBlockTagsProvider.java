@@ -20,9 +20,11 @@ public class OreProcessingBlockTagsProvider extends BlockTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
-                .add(RegistryHandler.CRUSHING_SLAB.get(), RegistryHandler.SLURRY_CAULDRON.get());
+                .add(RegistryHandler.CRUSHING_SLAB.get(), RegistryHandler.SLURRY_CAULDRON.get(),
+                        RegistryHandler.QUERN.get());
         tag(BlockTags.MINEABLE_WITH_AXE)
-                .add(RegistryHandler.SLUICE.get());
+                .add(RegistryHandler.SLUICE.get(), RegistryHandler.TRIP_HAMMER.get(),
+                        RegistryHandler.STIRRING_PADDLE.get(), RegistryHandler.SETTLING_TANK.get());
         // anvils are the vanilla heavy falling blocks; packs may add their own
         tag(RegistryHandler.HEAVY_TAG)
                 .addTag(BlockTags.ANVIL);

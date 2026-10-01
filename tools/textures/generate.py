@@ -463,6 +463,57 @@ def hammer():
     return image
 
 
+def panning_tray():
+    """A shallow wooden pan seen from above at an angle: a lit far rim, a darker bowl, a shaded near lip."""
+    image = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    cx, cy, rx, ry = 7.5, 8.5, 7.2, 5.2
+    for y in range(SIZE):
+        for x in range(SIZE):
+            d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
+            if d > 1.0:
+                continue
+            inner = ((x - cx) / (rx - 1.6)) ** 2 + ((y - cy + 0.6) / (ry - 1.4)) ** 2
+            if inner > 1.0:
+                # rim: lit along the far edge, shaded along the near edge
+                step = 5 if y < cy else 2 if y > cy + 1 else 3
+                if d > 0.86 and y > cy:
+                    step = 1
+            else:
+                # bowl floor: darker toward the far wall, a few concentric grooves
+                ring = int(inner * 3)
+                step = 3 if ring % 2 else 4
+                if y < cy - 2:
+                    step -= 1
+            image.putpixel((x, y), WOOD[step])
+    return image
+
+
+def guide():
+    """A bound book: a dark leather cover with a stone-grey clasp band and a small ore emblem."""
+    leather = ramp(14, 0.55, lo=0.16, hi=0.58)
+    paper = ramp(42, 0.22, lo=0.62, hi=0.95)
+    emblem = ramp(30, 0.70, lo=0.35, hi=0.95)
+    image = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    for y in range(1, 15):
+        for x in range(2, 14):
+            if x == 13 or y == 14:
+                colour = paper[2] if (x + y) % 2 else paper[1]
+            elif x == 2:
+                colour = leather[0]
+            elif y == 1 or x == 3:
+                colour = leather[4]
+            elif x == 12 or y == 13:
+                colour = leather[1]
+            else:
+                colour = leather[2] if (x * 3 + y) % 7 else leather[3]
+            image.putpixel((x, y), colour)
+    for y in range(2, 14):
+        image.putpixel((10, y), STONE[3] if y % 3 else STONE[4])
+    for x, y, step in ((6, 6, 5), (7, 6, 4), (6, 7, 4), (7, 7, 3), (8, 7, 2), (7, 8, 2), (5, 7, 3), (6, 8, 1)):
+        image.putpixel((x, y), emblem[step])
+    return image
+
+
 def preview(path, images, scale=12):
     sheet = Image.new("RGBA", (len(images) * (SIZE * scale + 4), SIZE * scale), (40, 44, 52, 255))
     for i, image in enumerate(images):
@@ -478,6 +529,8 @@ def main():
     for name, values in (("clumps", clumps()), ("dust", dust()), ("shards", shards())):
         write_layers(name, values)
     hammer().save(ITEM_DIR / "hammer.png")
+    panning_tray().save(ITEM_DIR / "panning_tray.png")
+    guide().save(ITEM_DIR / "guide.png")
 
     stone_side().save(BLOCK_DIR / "crushing_slab_side.png")
     stone_rim().save(BLOCK_DIR / "crushing_slab_rim.png")

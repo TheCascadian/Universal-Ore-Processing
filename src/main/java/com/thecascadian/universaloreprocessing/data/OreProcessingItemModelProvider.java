@@ -31,6 +31,12 @@ public class OreProcessingItemModelProvider extends ItemModelProvider {
         // block models come from the blockstate provider in the same run, so they are not checked on disk
         getBuilder("crushing_slab").parent(new ModelFile.UncheckedModelFile(modLoc("block/crushing_slab")));
         getBuilder("sluice").parent(new ModelFile.UncheckedModelFile(modLoc("block/sluice")));
+        getBuilder("trip_hammer").parent(new ModelFile.UncheckedModelFile(modLoc("block/trip_hammer_up")));
+        getBuilder("quern").parent(new ModelFile.UncheckedModelFile(modLoc("block/quern")));
+        getBuilder("stirring_paddle").parent(new ModelFile.UncheckedModelFile(modLoc("block/stirring_paddle_a")));
+        getBuilder("settling_tank").parent(new ModelFile.UncheckedModelFile(modLoc("block/settling_tank")));
+        basicItem(RegistryHandler.PANNING_TRAY.get());
+        basicItem(RegistryHandler.GUIDE.get());
     }
 
     private void layered(String name) {

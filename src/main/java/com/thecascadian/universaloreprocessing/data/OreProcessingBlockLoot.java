@@ -19,6 +19,10 @@ public class OreProcessingBlockLoot extends BlockLootSubProvider {
     protected void generate() {
         dropSelf(RegistryHandler.CRUSHING_SLAB.get());
         dropSelf(RegistryHandler.SLUICE.get());
+        dropSelf(RegistryHandler.TRIP_HAMMER.get());
+        dropSelf(RegistryHandler.QUERN.get());
+        dropSelf(RegistryHandler.STIRRING_PADDLE.get());
+        dropSelf(RegistryHandler.SETTLING_TANK.get());
         // slurry is lost with the water; the vanilla cauldron itself always comes back
         dropOther(RegistryHandler.SLURRY_CAULDRON.get(), Items.CAULDRON);
     }

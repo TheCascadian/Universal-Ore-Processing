@@ -8,6 +8,8 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.Tags;
 
@@ -44,6 +46,57 @@ public class OreProcessingRecipeProvider extends RecipeProvider {
                 .define('P', net.minecraft.tags.ItemTags.PLANKS)
                 .define('R', Tags.Items.RODS_WOODEN)
                 .unlockedBy("has_planks", has(net.minecraft.tags.ItemTags.PLANKS))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, RegistryHandler.TRIP_HAMMER_ITEM.get())
+                .pattern("LLL")
+                .pattern("LHL")
+                .pattern("L L")
+                .define('L', ItemTags.LOGS)
+                .define('H', RegistryHandler.HAMMER.get())
+                .unlockedBy("has_hammer", has(RegistryHandler.HAMMER.get()))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, RegistryHandler.QUERN_ITEM.get())
+                .pattern(" R ")
+                .pattern("SSS")
+                .pattern("CCC")
+                .define('R', Tags.Items.RODS_WOODEN)
+                .define('S', Items.SMOOTH_STONE)
+                .define('C', Tags.Items.COBBLESTONES)
+                .unlockedBy("has_grindstone", has(Items.GRINDSTONE))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, RegistryHandler.STIRRING_PADDLE_ITEM.get())
+                .pattern("PPP")
+                .pattern(" R ")
+                .pattern(" P ")
+                .define('P', ItemTags.PLANKS)
+                .define('R', Tags.Items.RODS_WOODEN)
+                .unlockedBy("has_cauldron", has(Items.CAULDRON))
+                .save(output);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, RegistryHandler.SETTLING_TANK_ITEM.get())
+                .pattern("P P")
+                .pattern("PCP")
+                .pattern("PPP")
+                .define('P', ItemTags.PLANKS)
+                .define('C', Items.CAULDRON)
+                .unlockedBy("has_cauldron", has(Items.CAULDRON))
+                .save(output);
+
+        // wooden slabs, so the pattern does not collide with the vanilla bowl
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, RegistryHandler.PANNING_TRAY.get())
+                .pattern("S S")
+                .pattern(" S ")
+                .define('S', ItemTags.WOODEN_SLABS)
+                .unlockedBy("has_planks", has(ItemTags.PLANKS))
+                .save(output);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, RegistryHandler.GUIDE.get())
+                .requires(Items.BOOK)
+                .requires(Tags.Items.RAW_MATERIALS)
+                .unlockedBy("has_book", has(Items.BOOK))
                 .save(output);
 
         // one recipe per furnace type covers every form of every discovered material
