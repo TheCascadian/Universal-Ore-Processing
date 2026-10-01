@@ -1,0 +1,41 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/crushing_slab"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/crushing_slab_crack_1"
+      },
+      "when": {
+        "crack": "1"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/crushing_slab_crack_2"
+      },
+      "when": {
+        "crack": "2"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/crushing_slab_crack_3"
+      },
+      "when": {
+        "crack": "3"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/crushing_slab_crack_4"
+      },
+      "when": {
+        "crack": "4"
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "universaloreprocessing:item/shards_0",
+    "layer1": "universaloreprocessing:item/shards_1",
+    "layer2": "universaloreprocessing:item/shards_2"
+  }
+}

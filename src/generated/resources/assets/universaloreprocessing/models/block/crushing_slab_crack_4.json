@@ -1,0 +1,26 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "up": {
+          "texture": "#crack"
+        }
+      },
+      "from": [
+        2,
+        14.01,
+        2
+      ],
+      "to": [
+        14,
+        14.01,
+        14
+      ]
+    }
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "crack": "universaloreprocessing:block/crushing_slab_crack_4",
+    "particle": "universaloreprocessing:block/crushing_slab_side"
+  }
+}

@@ -1,0 +1,4 @@
+// 1.21.1	2026-10-01T04:34:05.750142296	Loot Tables
+a8749fd817ff513ae5c8b216c004bf40ef6363e5 data/universaloreprocessing/loot_table/blocks/crushing_slab.json
+121976a652981da6a28024807ceb77027b1503cd data/universaloreprocessing/loot_table/blocks/sluice.json
+2f1ed0ef0d909fc01d3914735dd7ac7b23f82bf1 data/universaloreprocessing/loot_table/blocks/slurry_cauldron.json

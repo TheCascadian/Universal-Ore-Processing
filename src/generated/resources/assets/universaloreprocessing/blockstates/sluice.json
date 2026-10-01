@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "universaloreprocessing:block/sluice",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "universaloreprocessing:block/sluice"
+    },
+    "facing=south": {
+      "model": "universaloreprocessing:block/sluice",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "universaloreprocessing:block/sluice",
+      "y": 270
+    }
+  }
+}

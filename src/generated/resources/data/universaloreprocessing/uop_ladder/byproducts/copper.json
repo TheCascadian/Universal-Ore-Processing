@@ -1,0 +1,9 @@
+{
+  "byproducts": [
+    {
+      "chance": 0.015,
+      "tag": "c:nuggets/gold"
+    }
+  ],
+  "material": "copper"
+}

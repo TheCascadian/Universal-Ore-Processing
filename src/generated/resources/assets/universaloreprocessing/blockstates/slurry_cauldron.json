@@ -1,0 +1,49 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "minecraft:block/cauldron"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/slurry_cauldron_murky"
+      },
+      "when": {
+        "phase": "0"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/slurry_cauldron_still"
+      },
+      "when": {
+        "phase": "1|2|3|4"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/slurry_cauldron_crystals_1"
+      },
+      "when": {
+        "phase": "2"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/slurry_cauldron_crystals_2"
+      },
+      "when": {
+        "phase": "3"
+      }
+    },
+    {
+      "apply": {
+        "model": "universaloreprocessing:block/slurry_cauldron_crystals_3"
+      },
+      "when": {
+        "phase": "4"
+      }
+    }
+  ]
+}

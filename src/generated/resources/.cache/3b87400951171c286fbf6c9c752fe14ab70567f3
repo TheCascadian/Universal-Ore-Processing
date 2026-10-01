@@ -1,0 +1,6 @@
+// 1.21.1	2026-10-01T04:34:05.750392801	Universal Ore Processing ladder tables
+4fee041367f81fce15ad93ba57302bd6eccd8bdd data/universaloreprocessing/uop_ladder/byproducts/copper.json
+00a6e3a1d3cf29fc041d5f82defd6c2777e89227 data/universaloreprocessing/uop_ladder/byproducts/default.json
+a4247303707a3000abb3c6fddbc0b462efc706dd data/universaloreprocessing/uop_ladder/byproducts/gold.json
+e53297458a0191694e5bec7338a6ebe93589a0a6 data/universaloreprocessing/uop_ladder/byproducts/iron.json
+ac1dd7c9e1ed7eb01bee4d099bdbc9c4e848a4f3 data/universaloreprocessing/uop_ladder/ratios.json

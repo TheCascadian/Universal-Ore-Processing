@@ -1,0 +1,9 @@
+{
+  "byproducts": [
+    {
+      "chance": 0.02,
+      "item": "minecraft:flint"
+    }
+  ],
+  "material": "*"
+}

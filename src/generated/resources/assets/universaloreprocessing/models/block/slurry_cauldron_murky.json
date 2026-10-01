@@ -1,0 +1,27 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "up": {
+          "texture": "#surface",
+          "tintindex": 0
+        }
+      },
+      "from": [
+        2,
+        15,
+        2
+      ],
+      "to": [
+        14,
+        15,
+        14
+      ]
+    }
+  ],
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "minecraft:block/cauldron_side",
+    "surface": "universaloreprocessing:block/slurry_murky"
+  }
+}

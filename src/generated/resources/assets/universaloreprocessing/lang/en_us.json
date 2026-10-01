@@ -1,0 +1,19 @@
+{
+  "block.universaloreprocessing.crushing_slab": "Crushing Slab",
+  "block.universaloreprocessing.sluice": "Sluice",
+  "block.universaloreprocessing.slurry_cauldron": "Slurry Cauldron",
+  "item.universaloreprocessing.clumps": "Clumps",
+  "item.universaloreprocessing.clumps.named": "%s Clumps",
+  "item.universaloreprocessing.dust": "Dust",
+  "item.universaloreprocessing.dust.named": "%s Dust",
+  "item.universaloreprocessing.hammer": "Hammer",
+  "item.universaloreprocessing.shards": "Shards",
+  "item.universaloreprocessing.shards.named": "%s Shards",
+  "itemGroup.universaloreprocessing": "Universal Ore Processing",
+  "tooltip.universaloreprocessing.next.grind": "Next: grind on a grindstone",
+  "tooltip.universaloreprocessing.next.none": "Final form: smelt it",
+  "tooltip.universaloreprocessing.next.stir": "Next: stir in a water cauldron",
+  "tooltip.universaloreprocessing.next.strike": "Next: strike on a Crushing Slab",
+  "tooltip.universaloreprocessing.smelts": "Smelts into %s %s",
+  "tooltip.universaloreprocessing.washed": "Washed"
+}
