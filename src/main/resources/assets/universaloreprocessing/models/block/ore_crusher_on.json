@@ -1,9 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "top": "universaloreprocessing:block/machine_top",
-    "bottom": "universaloreprocessing:block/machine_bottom",
-    "side": "universaloreprocessing:block/machine_side",
-    "front": "universaloreprocessing:block/ore_crusher_front_on"
-  }
-}

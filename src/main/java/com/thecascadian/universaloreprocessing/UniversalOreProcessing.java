@@ -17,7 +17,7 @@ public class UniversalOreProcessing {
         OreProcessingConfig.register(modContainer);
         // inform pack makers / server admins where the generated config lives
         LOGGER.info("[UniversalOreProcessing] config available at config/{}-common.toml; " +
-                "edit the exclusion lists and stage options there (see comments in file).",
+                "ratios and byproducts live in the datapack tables under data/*/uop_ladder.",
                 MODID);
         RegistryHandler.init(modEventBus);
     }

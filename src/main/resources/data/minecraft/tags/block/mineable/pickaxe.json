@@ -1,8 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "universaloreprocessing:ore_crusher",
-    "universaloreprocessing:ore_washer",
-    "universaloreprocessing:ore_smelter"
-  ]
-}

@@ -8,8 +8,8 @@ license="${mod_license}"
     displayName="${mod_name}"
     authors="${mod_authors}"
     description='''
-        Discovers every ore in the game and processes it through crushing, washing and smelting
-        with a small fixed set of generic items, without per-material registration.
+        A low-tech, physical ore processing ladder: strike, grind, stir and settle every
+        discovered ore in the world itself, with no machines, menus or power.
     '''
 
 [[dependencies.${mod_id}]]
