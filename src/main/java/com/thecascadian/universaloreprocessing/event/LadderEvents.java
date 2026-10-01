@@ -10,6 +10,7 @@ import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.guide.Hints;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
+import com.thecascadian.universaloreprocessing.ladder.Waste;
 import com.thecascadian.universaloreprocessing.ladder.LadderTables;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
 import com.thecascadian.universaloreprocessing.network.Feedback;
@@ -62,8 +63,10 @@ public final class LadderEvents {
             if (level instanceof ServerLevel serverLevel) {
                 ItemStack dust = GrindstoneFeed.grind(serverLevel, pos, stack);
                 stack.consume(1, player);
-                if (!player.getInventory().add(dust))
-                    player.drop(dust, false);
+                for (ItemStack out : new ItemStack[] {dust, Waste.SAND.add(serverLevel, pos, 1)}) {
+                    if (!out.isEmpty() && !player.getInventory().add(out))
+                        player.drop(out, false);
+                }
             }
             cancel(event, level);
             return;

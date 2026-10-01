@@ -42,6 +42,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -50,6 +52,8 @@ import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
 
 @EventBusSubscriber(modid = UniversalOreProcessing.MODID, bus = EventBusSubscriber.Bus.MOD)
 public final class RegistryHandler {
@@ -87,6 +91,22 @@ public final class RegistryHandler {
                     .persistent(Codec.BOOL)
                     .networkSynchronized(ByteBufCodecs.BOOL)
                     .build());
+
+    // -------------------------------------------------------------------------
+    // Data attachments
+    // -------------------------------------------------------------------------
+
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister
+            .create(NeoForgeRegistries.ATTACHMENT_TYPES, UniversalOreProcessing.MODID);
+
+    // per chunk counts of items processed toward the next waste item; see Waste
+    public static final Supplier<AttachmentType<Integer>> GRAVEL_TALLY = tally("gravel_tally");
+    public static final Supplier<AttachmentType<Integer>> SAND_TALLY = tally("sand_tally");
+    public static final Supplier<AttachmentType<Integer>> CLAY_TALLY = tally("clay_tally");
+
+    private static Supplier<AttachmentType<Integer>> tally(String name) {
+        return ATTACHMENT_TYPES.register(name, () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build());
+    }
 
     // -------------------------------------------------------------------------
     // Blocks
@@ -270,6 +290,7 @@ public final class RegistryHandler {
 
     public static void init(IEventBus modEventBus) {
         DATA_COMPONENTS.register(modEventBus);
+        ATTACHMENT_TYPES.register(modEventBus);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);

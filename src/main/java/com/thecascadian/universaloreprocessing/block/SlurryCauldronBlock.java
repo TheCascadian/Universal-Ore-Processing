@@ -5,6 +5,7 @@ import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.guide.Hints;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
+import com.thecascadian.universaloreprocessing.ladder.Waste;
 import com.thecascadian.universaloreprocessing.network.Feedback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -210,9 +211,13 @@ public class SlurryCauldronBlock extends BaseEntityBlock {
     private static void harvest(ServerLevel level, BlockPos pos, Player player, SlurryCauldronBlockEntity cauldron) {
         String material = cauldron.material();
         ItemStack shards = FormItem.create(Form.SHARDS, material, cauldron.count());
+        // the fine rock settles under the crystals and comes out with them as clay
+        ItemStack clay = Waste.CLAY.add(level, pos, cauldron.count());
         level.setBlockAndUpdate(pos, Blocks.CAULDRON.defaultBlockState());
-        if (!player.getInventory().add(shards))
-            player.drop(shards, false);
+        for (ItemStack out : new ItemStack[] {shards, clay}) {
+            if (!out.isEmpty() && !player.getInventory().add(out))
+                player.drop(out, false);
+        }
         Feedback.play(level, surface(pos), Feedback.Verb.SETTLE, material);
     }
 

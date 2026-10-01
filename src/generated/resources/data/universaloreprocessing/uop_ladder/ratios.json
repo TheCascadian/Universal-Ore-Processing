@@ -1,6 +1,9 @@
 {
+  "clay_every": 8,
   "clumps": 1.25,
   "dust": 1.5,
+  "gravel_every": 4,
   "ore_clumps": 1,
+  "sand_every": 4,
   "shards": 2.0
 }

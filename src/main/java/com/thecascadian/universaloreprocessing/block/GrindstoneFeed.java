@@ -3,6 +3,7 @@ package com.thecascadian.universaloreprocessing.block;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
+import com.thecascadian.universaloreprocessing.ladder.Waste;
 import com.thecascadian.universaloreprocessing.network.Feedback;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -65,12 +66,18 @@ public final class GrindstoneFeed {
             if (stack.isEmpty() || !accepts(stack))
                 return stack;
             if (!simulate) {
-                ItemStack dust = grind(level, pos, stack);
-                ItemEntity entity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() - 0.2D, pos.getZ() + 0.5D, dust);
-                entity.setDeltaMovement(0.0D, -0.1D, 0.0D);
-                level.addFreshEntity(entity);
+                drop(grind(level, pos, stack));
+                drop(Waste.SAND.add(level, pos, 1));
             }
             return stack.copyWithCount(stack.getCount() - 1);
+        }
+
+        private void drop(ItemStack stack) {
+            if (stack.isEmpty())
+                return;
+            ItemEntity entity = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() - 0.2D, pos.getZ() + 0.5D, stack);
+            entity.setDeltaMovement(0.0D, -0.1D, 0.0D);
+            level.addFreshEntity(entity);
         }
 
         @Override

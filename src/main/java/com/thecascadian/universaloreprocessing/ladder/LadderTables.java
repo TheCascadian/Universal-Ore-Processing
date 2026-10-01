@@ -19,7 +19,7 @@ import java.util.Map;
 
 /**
  * Datapack tables under {@code data/<namespace>/uop_ladder/}. The file
- * {@code ratios.json} holds the smelt ratio of each rung; every file under
+ * {@code ratios.json} holds the smelt ratio of each rung and the waste rates; every file under
  * {@code byproducts/} names a material (or {@code "*"} for all) and the items
  * the Sluice may wash out of it. Both reload with /reload.
  */
@@ -28,9 +28,13 @@ public final class LadderTables extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "uop_ladder";
     private static final Gson GSON = new GsonBuilder().create();
 
-    /** Smelt ratios per rung; the defaults match the shipped table. */
-    public record Ratios(double clumps, double dust, double shards, int oreClumps) {
-        public static final Ratios DEFAULT = new Ratios(1.25D, 1.5D, 2.0D, 1);
+    /**
+     * Smelt ratios per rung, and how many items each waste takes (see
+     * {@link Waste}); the defaults match the shipped table.
+     */
+    public record Ratios(double clumps, double dust, double shards, int oreClumps,
+            int gravelEvery, int sandEvery, int clayEvery) {
+        public static final Ratios DEFAULT = new Ratios(1.25D, 1.5D, 2.0D, 1, 4, 4, 8);
 
         public double of(Form form) {
             return switch (form) {
@@ -83,7 +87,10 @@ public final class LadderTables extends SimpleJsonResourceReloadListener {
                             GsonHelper.getAsDouble(json, "clumps", Ratios.DEFAULT.clumps()),
                             GsonHelper.getAsDouble(json, "dust", Ratios.DEFAULT.dust()),
                             GsonHelper.getAsDouble(json, "shards", Ratios.DEFAULT.shards()),
-                            GsonHelper.getAsInt(json, "ore_clumps", Ratios.DEFAULT.oreClumps()));
+                            GsonHelper.getAsInt(json, "ore_clumps", Ratios.DEFAULT.oreClumps()),
+                            GsonHelper.getAsInt(json, "gravel_every", Ratios.DEFAULT.gravelEvery()),
+                            GsonHelper.getAsInt(json, "sand_every", Ratios.DEFAULT.sandEvery()),
+                            GsonHelper.getAsInt(json, "clay_every", Ratios.DEFAULT.clayEvery()));
                 } else if (path.startsWith("byproducts/")) {
                     String material = GsonHelper.getAsString(json, "material");
                     List<Byproduct> list = nextByproducts.computeIfAbsent(material, k -> new ArrayList<>());

@@ -101,6 +101,7 @@ public class OreProcessingLanguageProvider extends LanguageProvider {
 
         guide("strike.1", "Place a raw ore or an ore block on a Crushing Slab, then strike it with a Hammer.");
         guide("strike.2", "It breaks after %s strikes. The floor of the slab wears from smooth stone toward cobblestone during the last strikes, so you can see how close it is. The clumps pop out on top of the slab.");
+        guide("strike.waste", "Ore is never pure metal. For every %s items broken, the rock around the metal is left behind as one %s, popped out with the clumps.");
         guide("strike.3", "Set a Trip Hammer directly on top of a Crushing Slab. Each redstone pulse drops the head for one strike. A clock or a lever flicked by hand both work.");
         guide("strike.diagram.trip_hammer", "A lever beside the Trip Hammer, the Crushing Slab below it.");
         guide("strike.4", "A falling anvil also strikes a slab it lands on, one strike per fall.");
@@ -111,6 +112,7 @@ public class OreProcessingLanguageProvider extends LanguageProvider {
 
         guide("grind.1", "Right-click a vanilla grindstone with clumps. Each click grinds one clump into one dust. A hopper above the grindstone feeds it, and the dust drops out below.");
         guide("grind.2", "Clumps that were washed stay washed as dust.");
+        guide("grind.waste", "For every %s clumps ground, one %s of rock comes out with the dust.");
         guide("grind.3", "Fill a Quern with up to a stack of clumps, by hand or from a hopper above. Turn it with an empty hand or a redstone pulse; the peg on the top stone moves a quarter turn and one dust leaves through the spout.");
         guide("grind.diagram.quern", "A hopper above feeds clumps; a lever turns the stone; a hopper below catches the dust. Without a container below, the dust spills from the spout.");
         guide("grind.4", "A Quern holds one material at a time. Grind it empty before switching.");
@@ -128,8 +130,9 @@ public class OreProcessingLanguageProvider extends LanguageProvider {
 
         guide("settle.1", "Once stirred, the slurry settles on its own in about %s seconds. The surface clears, then crystals grow on it in three visible stages.");
         guide("settle.2", "When the third stage of crystals shows, right-click to collect the shards. The cauldron is left empty.");
-        guide("settle.3", "A Settling Tank works like a cauldron that holds %s dust. Fill it with a water bucket, add dust, stir it, and wait. Hoppers may add dust from the side or top and take the shards out from below.");
-        guide("settle.diagram.tank", "A hopper feeds dust from the side, a paddle stirs from above, and a hopper below collects the shards.");
+        guide("settle.waste", "The finest rock sinks under the crystals. For every %s dust settled you also collect one %s with the shards.");
+        guide("settle.3", "A Settling Tank works like a cauldron that holds %s dust. Fill it with a water bucket, add dust, stir it, and wait. Hoppers may add dust from the side or top and take the shards and clay out from below.");
+        guide("settle.diagram.tank", "A hopper feeds dust from the side, a paddle stirs from above, and a hopper below collects the shards and clay.");
         guide("settle.4", "The water is used up by the slurry. Refill the tank for the next batch.");
         guide("settle.mistake.1", "Collecting too early: wait for the third crystal stage.");
         guide("settle.mistake.2", "Adding dust to a dry tank: fill it with water first.");

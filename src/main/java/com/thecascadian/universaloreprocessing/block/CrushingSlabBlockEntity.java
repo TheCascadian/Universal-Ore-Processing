@@ -6,6 +6,7 @@ import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.ladder.LadderTables;
+import com.thecascadian.universaloreprocessing.ladder.Waste;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
 import com.thecascadian.universaloreprocessing.network.Feedback;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
@@ -94,8 +95,14 @@ public class CrushingSlabBlockEntity extends BlockEntity implements StrokeConsum
         changed();
         Feedback.play(serverLevel, top, Feedback.Verb.BREAK, entry.materialId());
 
-        ItemStack clumps = FormItem.create(Form.CLUMPS, entry.materialId(), count);
-        ItemEntity popped = new ItemEntity(serverLevel, top.x, worldPosition.getY() + 1.05D, top.z, clumps);
+        pop(serverLevel, top, FormItem.create(Form.CLUMPS, entry.materialId(), count));
+        pop(serverLevel, top, Waste.GRAVEL.add(serverLevel, worldPosition, 1));
+    }
+
+    private void pop(ServerLevel serverLevel, Vec3 top, ItemStack stack) {
+        if (stack.isEmpty())
+            return;
+        ItemEntity popped = new ItemEntity(serverLevel, top.x, worldPosition.getY() + 1.05D, top.z, stack);
         // a fixed upward pop keeps the outcome free of randomness; only the Sluice rolls dice
         popped.setDeltaMovement(0.0D, 0.25D, 0.0D);
         popped.setDefaultPickUpDelay();

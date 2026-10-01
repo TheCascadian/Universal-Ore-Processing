@@ -79,14 +79,23 @@ public final class Feedback {
         }
     }
 
-    public record RatiosPayload(double clumps, double dust, double shards, int oreClumps) implements CustomPacketPayload {
+    public record RatiosPayload(LadderTables.Ratios ratios) implements CustomPacketPayload {
         public static final Type<RatiosPayload> TYPE = new Type<>(RegistryHandler.id("ratios"));
-        public static final StreamCodec<ByteBuf, RatiosPayload> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.DOUBLE, RatiosPayload::clumps,
-                ByteBufCodecs.DOUBLE, RatiosPayload::dust,
-                ByteBufCodecs.DOUBLE, RatiosPayload::shards,
-                ByteBufCodecs.VAR_INT, RatiosPayload::oreClumps,
-                RatiosPayload::new);
+        // written by hand: the record has more fields than StreamCodec.composite takes
+        public static final StreamCodec<ByteBuf, RatiosPayload> STREAM_CODEC = StreamCodec.of(
+                (buf, payload) -> {
+                    LadderTables.Ratios r = payload.ratios();
+                    buf.writeDouble(r.clumps());
+                    buf.writeDouble(r.dust());
+                    buf.writeDouble(r.shards());
+                    ByteBufCodecs.VAR_INT.encode(buf, r.oreClumps());
+                    ByteBufCodecs.VAR_INT.encode(buf, r.gravelEvery());
+                    ByteBufCodecs.VAR_INT.encode(buf, r.sandEvery());
+                    ByteBufCodecs.VAR_INT.encode(buf, r.clayEvery());
+                },
+                buf -> new RatiosPayload(new LadderTables.Ratios(buf.readDouble(), buf.readDouble(), buf.readDouble(),
+                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf), ByteBufCodecs.VAR_INT.decode(buf))));
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -106,8 +115,7 @@ public final class Feedback {
         registrar.playToClient(ParticlePayload.TYPE, ParticlePayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> particleHandler.accept(payload)));
         registrar.playToClient(RatiosPayload.TYPE, RatiosPayload.STREAM_CODEC,
-                (payload, context) -> context.enqueueWork(() -> LadderTables.acceptSynced(new LadderTables.Ratios(
-                        payload.clumps(), payload.dust(), payload.shards(), payload.oreClumps()))));
+                (payload, context) -> context.enqueueWork(() -> LadderTables.acceptSynced(payload.ratios())));
     }
 
     /** Plays the verb's sound and sends tinted particles to every player tracking the position. */
@@ -134,8 +142,6 @@ public final class Feedback {
     }
 
     public static void syncRatios(ServerPlayer player) {
-        LadderTables.Ratios ratios = LadderTables.ratios();
-        PacketDistributor.sendToPlayer(player,
-                new RatiosPayload(ratios.clumps(), ratios.dust(), ratios.shards(), ratios.oreClumps()));
+        PacketDistributor.sendToPlayer(player, new RatiosPayload(LadderTables.ratios()));
     }
 }

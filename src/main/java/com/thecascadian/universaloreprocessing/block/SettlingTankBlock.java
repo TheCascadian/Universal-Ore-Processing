@@ -218,8 +218,11 @@ public class SettlingTankBlock extends BaseEntityBlock {
         if (stage < STIRRED || stage == READY)
             return;
         level.setBlockAndUpdate(pos, state.setValue(STAGE, stage + 1));
-        if (level.getBlockEntity(pos) instanceof SettlingTankBlockEntity tank)
+        if (level.getBlockEntity(pos) instanceof SettlingTankBlockEntity tank) {
             Feedback.play(level, surface(pos), Feedback.Verb.SETTLE, tank.material());
+            if (stage + 1 == READY)
+                tank.settleClay(level);
+        }
         if (stage + 1 < READY)
             level.scheduleTick(pos, this, SlurryCauldronBlock.stageTicks());
     }
@@ -227,12 +230,15 @@ public class SettlingTankBlock extends BaseEntityBlock {
     private static void harvest(ServerLevel level, BlockPos pos, Player player, SettlingTankBlockEntity tank) {
         String material = tank.material();
         ItemStack shards = tank.takeShards(tank.count());
-        if (!player.getInventory().add(shards))
-            player.drop(shards, false);
+        ItemStack clay = tank.takeClay(Integer.MAX_VALUE);
+        for (ItemStack out : new ItemStack[] {shards, clay}) {
+            if (!out.isEmpty() && !player.getInventory().add(out))
+                player.drop(out, false);
+        }
         Feedback.play(level, surface(pos), Feedback.Verb.SETTLE, material);
     }
 
-    /** Called by the block entity when the last shard has been taken out. */
+    /** Called by the block entity when the last shard and clay have been taken out. */
     static void emptied(Level level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         if (state.getBlock() instanceof SettlingTankBlock)
@@ -247,8 +253,10 @@ public class SettlingTankBlock extends BaseEntityBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         // dust and slurry are lost with the water, as in a cauldron; finished shards are not
         if (!state.is(newState.getBlock()) && state.getValue(STAGE) == READY
-                && level.getBlockEntity(pos) instanceof SettlingTankBlockEntity tank)
+                && level.getBlockEntity(pos) instanceof SettlingTankBlockEntity tank) {
             Block.popResource(level, pos, tank.takeShards(tank.count()));
+            Block.popResource(level, pos, tank.takeClay(Integer.MAX_VALUE));
+        }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

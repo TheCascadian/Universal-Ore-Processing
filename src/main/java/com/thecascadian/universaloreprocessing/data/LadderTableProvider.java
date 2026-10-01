@@ -35,6 +35,9 @@ public class LadderTableProvider implements DataProvider {
         ratios.addProperty("dust", defaults.dust());
         ratios.addProperty("shards", defaults.shards());
         ratios.addProperty("ore_clumps", defaults.oreClumps());
+        ratios.addProperty("gravel_every", defaults.gravelEvery());
+        ratios.addProperty("sand_every", defaults.sandEvery());
+        ratios.addProperty("clay_every", defaults.clayEvery());
         writes.add(DataProvider.saveStable(cache, ratios, path("ratios")));
 
         writes.add(byproducts(cache, "default", "*", entry("item", "minecraft:flint", 0.02D)));

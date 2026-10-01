@@ -7,6 +7,7 @@ import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.ladder.LadderTables;
+import com.thecascadian.universaloreprocessing.ladder.Waste;
 import com.thecascadian.universaloreprocessing.ladder.Yields;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.ItemLike;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The text and pictures of the in-game guide book. Prose is lang text; the
@@ -92,6 +94,7 @@ public final class GuideContent {
                 text("strike.1"),
                 flow(raw, stack(RegistryHandler.CRUSHING_SLAB_ITEM.get()), stack(RegistryHandler.HAMMER.get()), ARROW, clumps),
                 text("strike.2", strikes),
+                waste("strike", Waste.GRAVEL),
                 heading(RegistryHandler.TRIP_HAMMER_ITEM.get()),
                 text("strike.3"),
                 diagram("strike.diagram.trip_hammer",
@@ -110,6 +113,7 @@ public final class GuideContent {
                 text("grind.1"),
                 flow(clumps, stack(Items.GRINDSTONE), ARROW, dust),
                 text("grind.2"),
+                waste("grind", Waste.SAND),
                 heading(RegistryHandler.QUERN_ITEM.get()),
                 text("grind.3"),
                 diagram("grind.diagram.quern",
@@ -140,6 +144,7 @@ public final class GuideContent {
                 text("settle.1", seconds),
                 flow(stack(Items.CAULDRON), stack(Items.CLOCK), ARROW, shards),
                 text("settle.2"),
+                waste("settle", Waste.CLAY),
                 heading(RegistryHandler.SETTLING_TANK_ITEM.get()),
                 text("settle.3", SettlingTankBlock.CAPACITY),
                 diagram("settle.diagram.tank",
@@ -196,7 +201,14 @@ public final class GuideContent {
     // -------------------------------------------------------------------------
 
     private static Chapter chapter(String id, Element... elements) {
-        return new Chapter(text("chapter." + id).text(), List.of(elements));
+        // null elements are pieces switched off by the tables, such as a waste rate of zero
+        return new Chapter(text("chapter." + id).text(), Arrays.stream(elements).filter(Objects::nonNull).toList());
+    }
+
+    /** The rock a step leaves behind, or null when the tables turn that waste off. */
+    private static Element waste(String chapter, Waste waste) {
+        int every = waste.every();
+        return every > 0 ? text(chapter + ".waste", every, new ItemStack(waste.item()).getHoverName()) : null;
     }
 
     private static Text text(String key, Object... args) {

@@ -2,6 +2,7 @@ package com.thecascadian.universaloreprocessing.block;
 
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
+import com.thecascadian.universaloreprocessing.ladder.Waste;
 import com.thecascadian.universaloreprocessing.network.Feedback;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
 import net.minecraft.core.BlockPos;
@@ -80,15 +81,21 @@ public class QuernBlockEntity extends BlockEntity {
             contents = ItemStack.EMPTY;
         setChanged();
         Feedback.play(serverLevel, Vec3.atCenterOf(worldPosition), Feedback.Verb.TURN, FormItem.materialId(dust));
+        send(serverLevel, spout, dust);
+        send(serverLevel, spout, Waste.SAND.add(serverLevel, worldPosition, 1));
+    }
 
-        // a container directly below catches the dust; otherwise it spills from the spout
+    /** A container directly below catches the output; otherwise it spills from the spout. */
+    private void send(ServerLevel serverLevel, Direction spout, ItemStack stack) {
+        if (stack.isEmpty())
+            return;
         IItemHandler below = serverLevel.getCapability(Capabilities.ItemHandler.BLOCK, worldPosition.below(), Direction.UP);
         if (below != null)
-            dust = ItemHandlerHelper.insertItem(below, dust, false);
-        if (dust.isEmpty())
+            stack = ItemHandlerHelper.insertItem(below, stack, false);
+        if (stack.isEmpty())
             return;
         Vec3 out = Vec3.atCenterOf(worldPosition).add(spout.getStepX() * 0.6D, -0.2D, spout.getStepZ() * 0.6D);
-        ItemEntity entity = new ItemEntity(serverLevel, out.x, out.y, out.z, dust);
+        ItemEntity entity = new ItemEntity(serverLevel, out.x, out.y, out.z, stack);
         entity.setDeltaMovement(spout.getStepX() * 0.05D, 0.0D, spout.getStepZ() * 0.05D);
         serverLevel.addFreshEntity(entity);
     }
