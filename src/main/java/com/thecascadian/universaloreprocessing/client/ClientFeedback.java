@@ -29,6 +29,9 @@ public final class ClientFeedback {
             case WASH -> 4;
             case RIFFLE -> 3;
             case SILT -> 1;
+            case THUD -> 0;
+            case TURN -> 6;
+            case PAN -> 5;
         };
         float spread = switch (verb) {
             case BREAK -> 0.3F;

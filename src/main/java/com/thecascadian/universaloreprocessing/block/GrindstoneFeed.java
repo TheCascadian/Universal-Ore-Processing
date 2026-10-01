@@ -28,9 +28,16 @@ public final class GrindstoneFeed {
 
     /** Grinds one clump into one dust and returns it, with feedback at the wheel. */
     public static ItemStack grind(ServerLevel level, BlockPos pos, ItemStack clumps) {
-        String material = FormItem.materialId(clumps);
-        Feedback.play(level, Vec3.atCenterOf(pos), Feedback.Verb.GRIND, material);
-        return FormItem.create(Form.DUST, material, 1);
+        Feedback.play(level, Vec3.atCenterOf(pos), Feedback.Verb.GRIND, FormItem.materialId(clumps));
+        return grindQuietly(clumps);
+    }
+
+    /** The dust one clump grinds into, keeping its washed mark; the caller plays its own feedback. */
+    public static ItemStack grindQuietly(ItemStack clumps) {
+        ItemStack dust = FormItem.create(Form.DUST, FormItem.materialId(clumps), 1);
+        if (FormItem.isWashed(clumps))
+            dust = SluiceBlock.washed(dust);
+        return dust;
     }
 
     public static IItemHandler handlerFor(Level level, BlockPos pos) {

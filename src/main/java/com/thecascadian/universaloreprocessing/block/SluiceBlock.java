@@ -2,6 +2,7 @@ package com.thecascadian.universaloreprocessing.block;
 
 import com.mojang.serialization.MapCodec;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
+import com.thecascadian.universaloreprocessing.guide.Hints;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.ladder.LadderTables;
@@ -16,7 +17,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,6 +41,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -226,32 +231,64 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
 
     private static void wash(ServerLevel level, ItemEntity entity, ItemStack stack, int row) {
         String material = FormItem.materialId(stack);
-        double cap = OreProcessingConfig.get(OreProcessingConfig.COMMON.sluiceByproductCap);
-        RandomSource random = level.getRandom();
+        entity.setItem(washed(stack));
+        for (ItemStack out : byproducts(level, material, stack.getCount(), row)) {
+            ItemEntity spawned = new ItemEntity(level, entity.getX(), entity.getY(), entity.getZ(), out);
+            spawned.setDeltaMovement(entity.getDeltaMovement());
+            level.addFreshEntity(spawned);
+        }
+        Feedback.play(level, entity.position(), Feedback.Verb.WASH, material);
+    }
 
+    /** A copy of the stack marked as washed, so it is never washed again. */
+    public static ItemStack washed(ItemStack stack) {
         ItemStack washed = stack.copy();
         washed.set(RegistryHandler.WASHED_COMPONENT.get(), true);
-        entity.setItem(washed);
+        return washed;
+    }
 
+    /**
+     * Rolls the byproducts of washing {@code count} items of a material. Each
+     * item rolls once per byproduct; {@code row} multiplies the base chance up
+     * to the configured cap. The Panning Tray washes as a row of one.
+     */
+    public static List<ItemStack> byproducts(ServerLevel level, String material, int count, int row) {
+        double cap = OreProcessingConfig.get(OreProcessingConfig.COMMON.sluiceByproductCap);
+        RandomSource random = level.getRandom();
+        List<ItemStack> result = new ArrayList<>();
         for (LadderTables.Byproduct byproduct : LadderTables.byproductsFor(material)) {
             Optional<Item> item = resolve(byproduct);
             if (item.isEmpty())
                 continue;
             double chance = Math.min(cap, byproduct.chance() * row);
-            int count = 0;
-            for (int i = 0; i < stack.getCount(); i++) {
+            int hits = 0;
+            for (int i = 0; i < count; i++) {
                 if (random.nextDouble() < chance)
-                    count++;
+                    hits++;
             }
-            while (count > 0) {
-                ItemStack out = new ItemStack(item.get(), Math.min(count, item.get().getDefaultMaxStackSize()));
-                count -= out.getCount();
-                ItemEntity spawned = new ItemEntity(level, entity.getX(), entity.getY(), entity.getZ(), out);
-                spawned.setDeltaMovement(entity.getDeltaMovement());
-                level.addFreshEntity(spawned);
+            while (hits > 0) {
+                ItemStack out = new ItemStack(item.get(), Math.min(hits, item.get().getDefaultMaxStackSize()));
+                hits -= out.getCount();
+                result.add(out);
             }
         }
-        Feedback.play(level, entity.position(), Feedback.Verb.WASH, material);
+        return result;
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        if (!(placer instanceof Player player))
+            return;
+        Direction facing = state.getValue(FACING);
+        for (Direction side : new Direction[] {facing, facing.getOpposite()}) {
+            BlockState neighbour = level.getBlockState(pos.relative(side));
+            if (neighbour.is(this) && neighbour.getValue(FACING) != facing) {
+                Hints.tell(player, "sluice.facing");
+                return;
+            }
+        }
+        if (!state.getValue(WATERLOGGED))
+            Hints.tell(player, "sluice.dry");
     }
 
     private static Optional<Item> resolve(LadderTables.Byproduct byproduct) {

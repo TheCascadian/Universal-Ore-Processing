@@ -40,6 +40,10 @@ public final class Feedback {
         SETTLE(SoundEvents.AMETHYST_BLOCK_CHIME, 0.7F, 1.4F),
         WASH(SoundEvents.GENERIC_SPLASH, 0.35F, 1.6F),
         RIFFLE(SoundEvents.GRAVEL_HIT, 0.25F, 1.5F),
+        // a Trip Hammer falling on nothing it can strike
+        THUD(SoundEvents.WOOD_HIT, 0.7F, 0.6F),
+        TURN(SoundEvents.GRINDSTONE_USE, 0.4F, 0.8F),
+        PAN(SoundEvents.GENERIC_SPLASH, 0.25F, 1.9F),
         // a silent trail of silt behind an item crawling along a Sluice
         SILT(null, 0.0F, 0.0F);
 

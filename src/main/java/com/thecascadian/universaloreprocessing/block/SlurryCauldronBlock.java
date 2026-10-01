@@ -2,6 +2,7 @@ package com.thecascadian.universaloreprocessing.block;
 
 import com.mojang.serialization.MapCodec;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
+import com.thecascadian.universaloreprocessing.guide.Hints;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.network.Feedback;
@@ -117,11 +118,25 @@ public class SlurryCauldronBlock extends BaseEntityBlock {
                 harvest(serverLevel, pos, player, cauldron);
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
-        if (phase != 0)
+        Form form = FormItem.formOf(stack);
+        boolean stick = stack.is(Tags.Items.RODS_WOODEN);
+        if (phase != 0) {
+            if (form != null || stick)
+                Hints.tell(player, "slurry.settling", phase - 1, READY - 1);
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
 
-        if (FormItem.formOf(stack) == Form.DUST && FormItem.materialId(stack).equals(cauldron.material())
-                && cauldron.count() < CAPACITY) {
+        if (form == Form.DUST) {
+            String material = FormItem.materialId(stack);
+            if (!material.equals(cauldron.material())) {
+                Hints.tell(player, "slurry.other_material", FormItem.materialName(cauldron.material()),
+                        FormItem.materialName(material));
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
+            if (cauldron.count() >= CAPACITY) {
+                Hints.tell(player, "slurry.full", CAPACITY);
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
             if (level instanceof ServerLevel serverLevel) {
                 cauldron.addDust();
                 stack.consume(1, player);
@@ -129,26 +144,52 @@ public class SlurryCauldronBlock extends BaseEntityBlock {
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
+        if (form != null) {
+            Hints.tell(player, "slurry.wrong_form");
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
 
-        if (stack.is(Tags.Items.RODS_WOODEN)) {
-            if (level instanceof ServerLevel serverLevel) {
-                Feedback.play(serverLevel, surface(pos), Feedback.Verb.STIR, cauldron.material());
-                int needed = OreProcessingConfig.get(OreProcessingConfig.COMMON.stirsPerSlurry);
-                if (cauldron.stir() >= needed) {
-                    level.setBlockAndUpdate(pos, state.setValue(PHASE, 1));
-                    level.scheduleTick(pos, this, stageTicks());
-                }
-            }
+        if (stick) {
+            if (level instanceof ServerLevel serverLevel)
+                stir(serverLevel, pos, player);
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
+    /**
+     * One stir of the unstirred slurry at {@code pos}. Used by a stick and by a
+     * Stirring Paddle; {@code player} is null for the paddle. Returns false when
+     * there is nothing to stir.
+     */
+    public static boolean stir(ServerLevel level, BlockPos pos, Player player) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof SlurryCauldronBlock block) || state.getValue(PHASE) != 0
+                || !(level.getBlockEntity(pos) instanceof SlurryCauldronBlockEntity cauldron))
+            return false;
+        Feedback.play(level, surface(pos), Feedback.Verb.STIR, cauldron.material());
+        int needed = OreProcessingConfig.get(OreProcessingConfig.COMMON.stirsPerSlurry);
+        int stirs = cauldron.stir();
+        if (stirs >= needed) {
+            level.setBlockAndUpdate(pos, state.setValue(PHASE, 1));
+            level.scheduleTick(pos, block, stageTicks());
+        } else if (player != null) {
+            Hints.tell(player, "slurry.stirred", stirs, needed);
+        }
+        return true;
+    }
+
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
-        if (state.getValue(PHASE) != READY || !(level.getBlockEntity(pos) instanceof SlurryCauldronBlockEntity cauldron))
+        int phase = state.getValue(PHASE);
+        if (phase != READY || !(level.getBlockEntity(pos) instanceof SlurryCauldronBlockEntity cauldron)) {
+            if (phase == 0)
+                Hints.tell(player, "slurry.needs_stir");
+            else
+                Hints.tell(player, "slurry.settling", phase - 1, READY - 1);
             return InteractionResult.PASS;
+        }
         if (level instanceof ServerLevel serverLevel)
             harvest(serverLevel, pos, player, cauldron);
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -175,12 +216,12 @@ public class SlurryCauldronBlock extends BaseEntityBlock {
         Feedback.play(level, surface(pos), Feedback.Verb.SETTLE, material);
     }
 
-    private static int stageTicks() {
+    static int stageTicks() {
         // stirred, then three visible stages: the configured time is split across those three steps
         return Math.max(1, OreProcessingConfig.get(OreProcessingConfig.COMMON.settleTicks) / 3);
     }
 
-    private static Vec3 surface(BlockPos pos) {
+    static Vec3 surface(BlockPos pos) {
         return Vec3.atLowerCornerOf(pos).add(0.5D, 15.0D / 16.0D, 0.5D);
     }
 }

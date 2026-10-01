@@ -1,9 +1,13 @@
 package com.thecascadian.universaloreprocessing.block;
 
 import com.mojang.serialization.MapCodec;
+import com.thecascadian.universaloreprocessing.guide.Hints;
+import com.thecascadian.universaloreprocessing.item.FormItem;
+import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -65,8 +69,10 @@ public class CrushingSlabBlock extends BaseEntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
         if (stack.is(RegistryHandler.HAMMERS_TAG)) {
-            if (slab.isEmpty())
+            if (slab.isEmpty()) {
+                Hints.tell(player, "slab.empty");
                 return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
             if (level instanceof ServerLevel serverLevel) {
                 slab.strike(serverLevel);
                 stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
@@ -74,13 +80,20 @@ public class CrushingSlabBlock extends BaseEntityBlock {
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
 
-        if (slab.isEmpty() && MaterialRegistry.current().inputFor(stack.getItem()) != null) {
+        if (MaterialRegistry.current().inputFor(stack.getItem()) != null) {
+            if (!slab.isEmpty()) {
+                Hints.tell(player, "slab.occupied", slab.item().getHoverName());
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
             if (!level.isClientSide) {
                 slab.place(stack.copyWithCount(1));
                 stack.consume(1, player);
             }
             return ItemInteractionResult.sidedSuccess(level.isClientSide);
         }
+        Form form = FormItem.formOf(stack);
+        if (form != null)
+            Hints.tell(player, "slab.already_crushed", Component.translatable(form.nextKey()));
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 

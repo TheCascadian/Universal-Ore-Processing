@@ -7,6 +7,7 @@ import com.thecascadian.universaloreprocessing.block.GrindstoneFeed;
 import com.thecascadian.universaloreprocessing.block.SluiceBlock;
 import com.thecascadian.universaloreprocessing.block.SlurryCauldronBlock;
 import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
+import com.thecascadian.universaloreprocessing.guide.Hints;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.ladder.LadderTables;
@@ -76,6 +77,26 @@ public final class LadderEvents {
                 SlurryCauldronBlock.fill(serverLevel, pos, material, RegistryHandler.SLURRY_CAULDRON.get().defaultBlockState());
             }
             cancel(event, level);
+            return;
+        }
+
+        hintMistake(state, stack, player);
+    }
+
+    /** Explains the near misses: the right station with the wrong form, or the right form at the wrong station. */
+    private static void hintMistake(BlockState state, ItemStack stack, Player player) {
+        Form form = FormItem.formOf(stack);
+        boolean raw = form == null && MaterialRegistry.current().inputFor(stack.getItem()) != null;
+        if (state.is(Blocks.GRINDSTONE)) {
+            if (raw)
+                Hints.tell(player, "grind.raw");
+            else if (form == Form.DUST || form == Form.SHARDS)
+                Hints.tell(player, "grind.done");
+        } else if (state.is(Blocks.CAULDRON) || state.is(Blocks.WATER_CAULDRON)) {
+            if (form == Form.DUST)
+                Hints.tell(player, "cauldron.not_full");
+            else if (form == Form.CLUMPS || raw)
+                Hints.tell(player, "cauldron.too_coarse");
         }
     }
 
