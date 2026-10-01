@@ -5,6 +5,7 @@ import com.thecascadian.universaloreprocessing.config.OreProcessingConfig;
 import com.thecascadian.universaloreprocessing.item.FormItem;
 import com.thecascadian.universaloreprocessing.ladder.Form;
 import com.thecascadian.universaloreprocessing.ladder.LadderTables;
+import com.thecascadian.universaloreprocessing.material.MaterialRegistry;
 import com.thecascadian.universaloreprocessing.network.Feedback;
 import com.thecascadian.universaloreprocessing.registry.RegistryHandler;
 import net.minecraft.core.BlockPos;
@@ -138,7 +139,7 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
         }
 
         Direction downstream = state.getValue(FACING);
-        String material = FormItem.materialId(entity.getItem());
+        String material = materialOf(entity.getItem());
 
         // leading edge of the item, now and last tick, as a fraction of this block measured downstream
         double start = along(downstream, pos.getX() + 0.5D, pos.getZ() + 0.5D) - 0.5D;
@@ -194,6 +195,15 @@ public class SluiceBlock extends HorizontalDirectionalBlock implements SimpleWat
 
         int row = rowLength(level, pos, downstream);
         wash((ServerLevel) level, entity, stack, row);
+    }
+
+    // ladder forms carry their material; raw ore and ore blocks are looked up so their grit is tinted too
+    private static String materialOf(ItemStack stack) {
+        String material = FormItem.materialId(stack);
+        if (material != null)
+            return material;
+        MaterialRegistry.InputEntry entry = MaterialRegistry.current().inputFor(stack.getItem());
+        return entry == null ? null : entry.materialId();
     }
 
     private static double along(Direction downstream, double x, double z) {

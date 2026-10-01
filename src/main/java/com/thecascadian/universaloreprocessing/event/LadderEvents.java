@@ -91,10 +91,9 @@ public final class LadderEvents {
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
         // cheapest checks first: almost every entity leaves at the instanceof
-        if (!(event.getEntity() instanceof ItemEntity item))
+        if (!(event.getEntity() instanceof ItemEntity item) || !item.isInWater())
             return;
-        if (!(item.getItem().getItem() instanceof FormItem) || !item.isInWater())
-            return;
+        // every item in a Sluice is carried, so raw ore and byproducts move with the rest; only ladder forms wash
         // both sides: the client simulates the motion itself so the tumble animates smoothly
         SluiceBlock.handleItem(item.level(), item);
     }
